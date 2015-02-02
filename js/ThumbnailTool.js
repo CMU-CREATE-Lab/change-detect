@@ -2,8 +2,10 @@ function scale(val, omin, omax, nmin, nmax) {
   return ( ((val - omin) * (nmax - nmin))/(omax - omin) + nmin)
 }
 
-var ThumbnailTool = function(timelapse, ltrb) {
+var ThumbnailTool = function(timelapse, options) {
   this.timelapse_ = timelapse;
+
+  this.options_ = options || {};
 
   this.canvasLayer_ = new TimeMachineCanvasLayer({
     timelapse: timelapse,
@@ -26,15 +28,17 @@ var ThumbnailTool = function(timelapse, ltrb) {
 
   this.selectedHandle = null;
 
+  this.doFilter = typeof this.options_.doFilter == "undefined" ? true : this.options_.doFilter;
+
   this.xhr = null;
   this.requestMade = false;
 
   var that = this;
   var el = document.getElementById('thumbnail-tool');
 
-  if (ltrb) {
+  if (this.options_.ltrb) {
     this.display = true;
-    var a = ltrb.split(",");
+    var a = this.options_.ltrb.split(",");
     this.offset_ = {
       x: 0,
       y: 0
@@ -392,6 +396,9 @@ ThumbnailTool.prototype.setBounds = function(bounds) {
 }
 
 ThumbnailTool.prototype.filter = function(callback) {
+  if (!this.doFilter) {
+    return false;
+  }
   var el = document.getElementById('chart');
   el.style['background'] = "url('images/ajax-loader.gif') #fff center no-repeat";
     if (typeof chart != "undefined") {

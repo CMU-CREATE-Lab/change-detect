@@ -73,6 +73,7 @@
               var fiveSecondsFromEnd = numFrames - 60;
               timelapse.seekToFrame(fiveSecondsFromEnd);
             }
+            var thumbnailToolOptions = {};
             var bounds;
             if (typeof hashVars.ttLTRB != "undefined") {
               bounds = hashVars.ttLTRB;
@@ -82,7 +83,11 @@
               var scaleOffsetY = 40/view.scale;
               bounds = (view.x - scaleOffsetX) + "," + (view.y - scaleOffsetY) + "," + (view.x + scaleOffsetX) + "," + (view.y + scaleOffsetY);
             }
-            thumbnailTool = new ThumbnailTool(timelapse, bounds);
+            thumbnailToolOptions['ltrb'] = bounds;
+            if (typeof hashVars['nochart'] != "undefined") {              
+              thumbnailToolOptions['doFilter'] = false;
+            }
+            thumbnailTool = new ThumbnailTool(timelapse, thumbnailToolOptions);
           }
         };
 
@@ -115,7 +120,7 @@
         var queryString = {};
         var re = new RegExp("([^?=&]+)(=([^&]*))?", "g");
         str.replace(re, function($0, $1, $2, $3) {
-          queryString[$1] = $3;
+          queryString[$1] = $3 || true;
         });
         return queryString;
       }
