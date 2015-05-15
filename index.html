@@ -7,12 +7,6 @@
     <link href="http://api.cmucreatelab.org/timemachine-viewer-89a436a/css/jquery-ui/smoothness/jquery-ui.custom.css" media="screen" rel="stylesheet" type="text/css" />
     <link href="http://api.cmucreatelab.org/timemachine-viewer-89a436a/css/defaultUI.css" media="screen" rel="stylesheet" type="text/css" />
     <link href="css/change.css" media="screen" rel="stylesheet" type="text/css" />
-    <style type="text/css">
-      #poi {
-        text-align: center;
-        font-size: 14px;
-      }
-    </style>
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
@@ -84,7 +78,7 @@
               bounds = (view.x - scaleOffsetX) + "," + (view.y - scaleOffsetY) + "," + (view.x + scaleOffsetX) + "," + (view.y + scaleOffsetY);
             }
             thumbnailToolOptions['ltrb'] = bounds;
-            if (typeof hashVars['nochart'] != "undefined") {              
+            if (typeof hashVars['nochart'] != "undefined") {
               thumbnailToolOptions['doFilter'] = false;
             }
             thumbnailTool = new ThumbnailTool(timelapse, thumbnailToolOptions);

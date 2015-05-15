@@ -9,7 +9,6 @@ org.gigapan.timelapse.Timelapse.prototype.getScale = function() {
 }
 
 org.gigapan.timelapse.OverlayView = function() {
-  console.log('org.gigapan.timelapse.OverlayView');
 }
 
 org.gigapan.timelapse.OverlayView.prototype.setTimelapse = function(timelapse) {
@@ -73,7 +72,7 @@ function TimeMachineCanvasLayer(opt_options) {
    * @type {string}
    * @private
    */
-  this.paneName_ = TimeMachineCanvasLayer.DEFAULT_PANE_NAME_;
+  this.paneName_ = (opt_options.id !== undefined) ? opt_options.id : TimeMachineCanvasLayer.DEFAULT_PANE_NAME_;
 
   /**
    * A user-supplied function called whenever an update is required. Null or
@@ -337,6 +336,7 @@ TimeMachineCanvasLayer.prototype.setPane_ = function() {
   panes[this.paneName_].appendChild(this.canvas);
   */
     var div = document.createElement("div");
+    div.id = this.paneName_;
     div.style.position = 'absolute';
     div.style.top = 0;
     div.style.left = 0;
@@ -388,7 +388,7 @@ TimeMachineCanvasLayer.prototype.onAdd = function() {
 */
 
   var timelapse = this.getTimelapse();
-  // TODO(gabrielo): we should subscribe to the timelapse resize event listener 
+  // TODO(gabrielo): we should subscribe to the timelapse resize event listener
   this.resizeListener_ = window.addEventListener("resize", this.resizeFunction_);
   this.centerListener_ = timelapse.addViewChangeListener(this.repositionFunction_);
 
@@ -461,7 +461,6 @@ TimeMachineCanvasLayer.prototype.resize_ = function() {
  * @inheritDoc
  */
 TimeMachineCanvasLayer.prototype.draw = function() {
-  console.log('draw');
   this.repositionCanvas_();
 };
 
