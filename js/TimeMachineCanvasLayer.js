@@ -1,5 +1,5 @@
 org.gigapan.timelapse.Timelapse.prototype.getDiv = function() {
-  var el = document.getElementById(this.getTimeMachineDivId());
+  var el = this.getViewerDiv();
   return el;
 }
 
@@ -19,7 +19,6 @@ org.gigapan.timelapse.OverlayView.prototype.setTimelapse = function(timelapse) {
 org.gigapan.timelapse.OverlayView.prototype.getTimelapse = function() {
   return this.timelapse;
 }
-
 
 /**
  * Copyright 2012 Google Inc. All Rights Reserved.
