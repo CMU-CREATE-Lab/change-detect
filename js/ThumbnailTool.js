@@ -1,10 +1,17 @@
 var ThumbnailTool = function(timelapse, options) {
   var that = this;
+  var filterCallBack = function(r) {
+    var o = JSON.parse(r);
+    drawResults(o.values);
+  };
   this.timelapse_ = timelapse;
   this.options_ = options || {};
   this.canvasLayer_ = new TimeMachineCanvasLayer({
     timelapse: timelapse,
-    resizeHandler: resize,
+    resizeHandler: function() {
+      that.resize();
+      that.filter(filterCallBack);
+    },
     animate: false,
     updateHandler: function() {
       that.update();
@@ -56,10 +63,7 @@ var ThumbnailTool = function(timelapse, options) {
       ymax: parseFloat(a[3])
     });
     this.draw();
-    this.filter(function(r) {
-      var o = JSON.parse(r);
-      drawResults(o.values);
-    });
+    this.filter(filterCallBack);
   }
 
   el.addEventListener("mousedown", function(event) {
