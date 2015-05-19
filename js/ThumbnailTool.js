@@ -1,15 +1,14 @@
-function scale(val, omin, omax, nmin, nmax) {
-  return (((val - omin) * (nmax - nmin)) / (omax - omin) + nmin);
-}
-
 var ThumbnailTool = function(timelapse, options) {
+  var that = this;
   this.timelapse_ = timelapse;
   this.options_ = options || {};
   this.canvasLayer_ = new TimeMachineCanvasLayer({
     timelapse: timelapse,
     resizeHandler: resize,
     animate: false,
-    updateHandler: update,
+    updateHandler: function() {
+      that.update();
+    },
     id: "thumbnailTool"
   });
   this.ctx_ = this.canvasLayer_.canvas.getContext('2d');
@@ -23,7 +22,22 @@ var ThumbnailTool = function(timelapse, options) {
   this.xhr = null;
   this.requestMade = false;
 
-  var that = this;
+  this.scale = function(val, omin, omax, nmin, nmax) {
+    return (((val - omin) * (nmax - nmin)) / (omax - omin) + nmin);
+  };
+
+  this.supportsPointerEventsNone = function() {
+    if (navigator.appName == 'Microsoft Internet Explorer') {
+      var agent = navigator.userAgent;
+      if (agent.match(/MSIE ([0-9]{1,}[\.0-9]{0,})/) !== null) {
+        var version = parseFloat(RegExp.$1);
+        if (version < 11)
+          return false;
+      }
+    }
+    return true;
+  };
+
   var el = document.getElementById('thumbnail-tool');
 
   this.$videoDiv = $("#" + timelapse.getVideoDivId());
@@ -57,7 +71,7 @@ var ThumbnailTool = function(timelapse, options) {
         chart.clearChart();
       }
       var el = document.getElementById('chart');
-      el.style['background'] = "#ffffff";
+      //el.style['background'] = "#ffffff";
     } else {
       that.display = true;
       var view = timelapse.getView();
@@ -129,8 +143,8 @@ var ThumbnailTool = function(timelapse, options) {
     var coords = that.getMouse(event);
     var bounds = that.timelapse_.getBoundingBoxForCurrentView();
     var timelapseCoords = {
-      x: scale(coords.x, 0, that.canvasLayer_.canvas.width, bounds.xmin, bounds.xmax),
-      y: scale(coords.y, 0, that.canvasLayer_.canvas.height, bounds.ymin, bounds.ymax)
+      x: that.scale(coords.x, 0, that.canvasLayer_.canvas.width, bounds.xmin, bounds.xmax),
+      y: that.scale(coords.y, 0, that.canvasLayer_.canvas.height, bounds.ymin, bounds.ymax)
     };
     if (that.contains(timelapseCoords, that.bounds_)) {
       that.selected = true;
@@ -170,8 +184,8 @@ var ThumbnailTool = function(timelapse, options) {
     var coords = that.getMouse(event);
     var bounds = that.timelapse_.getBoundingBoxForCurrentView();
     var timelapseCoords = {
-      x: scale(coords.x, 0, that.canvasLayer_.canvas.width, bounds.xmin, bounds.xmax),
-      y: scale(coords.y, 0, that.canvasLayer_.canvas.height, bounds.ymin, bounds.ymax)
+      x: that.scale(coords.x, 0, that.canvasLayer_.canvas.width, bounds.xmin, bounds.xmax),
+      y: that.scale(coords.y, 0, that.canvasLayer_.canvas.height, bounds.ymin, bounds.ymax)
     };
     if (that.contains(timelapseCoords, that.bounds_)) {
       that.setCursor(-1);
@@ -280,7 +294,7 @@ ThumbnailTool.prototype.setCursor = function(index) {
 };
 
 ThumbnailTool.prototype.dispatchEvent = function(event) {
-  if (!this.resizing && !supportsPointerEventsNone) {
+  if (!this.resizing && !this.supportsPointerEventsNone()) {
     //var hitTargets = document.msElementsFromPoint(event.clientX, event.clientY);
     var timeMachineCanvas = document.getElementById(this.timelapse_.getVideoDivId());
     var thumbnailToolPane = document.getElementById(this.canvasLayer_.getPaneName());
@@ -298,57 +312,57 @@ ThumbnailTool.prototype.getHandleBox = function(index) {
   var box = {};
   if (index == 0) {
     box = {
-      x: scale(this.handles_[0].x, cv.xmin, cv.xmax, 0, this.canvasLayer_.canvas.width) - 8,
-      y: scale(this.handles_[0].y, cv.ymin, cv.ymax, 0, this.canvasLayer_.canvas.height) - 8,
+      x: this.scale(this.handles_[0].x, cv.xmin, cv.xmax, 0, this.canvasLayer_.canvas.width) - 8,
+      y: this.scale(this.handles_[0].y, cv.ymin, cv.ymax, 0, this.canvasLayer_.canvas.height) - 8,
       width: 7,
       height: 7
     };
   } else if (index == 1) {
     box = {
-      x: scale(this.handles_[1].x, cv.xmin, cv.xmax, 0, this.canvasLayer_.canvas.width) - 4,
-      y: scale(this.handles_[1].y, cv.ymin, cv.ymax, 0, this.canvasLayer_.canvas.height) - 8,
+      x: this.scale(this.handles_[1].x, cv.xmin, cv.xmax, 0, this.canvasLayer_.canvas.width) - 4,
+      y: this.scale(this.handles_[1].y, cv.ymin, cv.ymax, 0, this.canvasLayer_.canvas.height) - 8,
       width: 7,
       height: 7
     };
   } else if (index == 2) {
     box = {
-      x: scale(this.handles_[2].x, cv.xmin, cv.xmax, 0, this.canvasLayer_.canvas.width) + 1,
-      y: scale(this.handles_[2].y, cv.ymin, cv.ymax, 0, this.canvasLayer_.canvas.height) - 8,
+      x: this.scale(this.handles_[2].x, cv.xmin, cv.xmax, 0, this.canvasLayer_.canvas.width) + 1,
+      y: this.scale(this.handles_[2].y, cv.ymin, cv.ymax, 0, this.canvasLayer_.canvas.height) - 8,
       width: 7,
       height: 7
     };
   } else if (index == 3) {
     box = {
-      x: scale(this.handles_[3].x, cv.xmin, cv.xmax, 0, this.canvasLayer_.canvas.width) + 1,
-      y: scale(this.handles_[3].y, cv.ymin, cv.ymax, 0, this.canvasLayer_.canvas.height) - 4,
+      x: this.scale(this.handles_[3].x, cv.xmin, cv.xmax, 0, this.canvasLayer_.canvas.width) + 1,
+      y: this.scale(this.handles_[3].y, cv.ymin, cv.ymax, 0, this.canvasLayer_.canvas.height) - 4,
       width: 7,
       height: 7
     };
   } else if (index == 4) {
     box = {
-      x: scale(this.handles_[4].x, cv.xmin, cv.xmax, 0, this.canvasLayer_.canvas.width) + 1,
-      y: scale(this.handles_[4].y, cv.ymin, cv.ymax, 0, this.canvasLayer_.canvas.height) + 1,
+      x: this.scale(this.handles_[4].x, cv.xmin, cv.xmax, 0, this.canvasLayer_.canvas.width) + 1,
+      y: this.scale(this.handles_[4].y, cv.ymin, cv.ymax, 0, this.canvasLayer_.canvas.height) + 1,
       width: 7,
       height: 7
     };
   } else if (index == 5) {
     box = {
-      x: scale(this.handles_[5].x, cv.xmin, cv.xmax, 0, this.canvasLayer_.canvas.width) - 4,
-      y: scale(this.handles_[5].y, cv.ymin, cv.ymax, 0, this.canvasLayer_.canvas.height) + 1,
+      x: this.scale(this.handles_[5].x, cv.xmin, cv.xmax, 0, this.canvasLayer_.canvas.width) - 4,
+      y: this.scale(this.handles_[5].y, cv.ymin, cv.ymax, 0, this.canvasLayer_.canvas.height) + 1,
       width: 7,
       height: 7
     };
   } else if (index == 6) {
     box = {
-      x: scale(this.handles_[6].x, cv.xmin, cv.xmax, 0, this.canvasLayer_.canvas.width) - 8,
-      y: scale(this.handles_[6].y, cv.ymin, cv.ymax, 0, this.canvasLayer_.canvas.height) + 1,
+      x: this.scale(this.handles_[6].x, cv.xmin, cv.xmax, 0, this.canvasLayer_.canvas.width) - 8,
+      y: this.scale(this.handles_[6].y, cv.ymin, cv.ymax, 0, this.canvasLayer_.canvas.height) + 1,
       width: 7,
       height: 7
     };
   } else {
     box = {
-      x: scale(this.handles_[7].x, cv.xmin, cv.xmax, 0, this.canvasLayer_.canvas.width) - 8,
-      y: scale(this.handles_[7].y, cv.ymin, cv.ymax, 0, this.canvasLayer_.canvas.height) - 4,
+      x: this.scale(this.handles_[7].x, cv.xmin, cv.xmax, 0, this.canvasLayer_.canvas.width) - 8,
+      y: this.scale(this.handles_[7].y, cv.ymin, cv.ymax, 0, this.canvasLayer_.canvas.height) - 4,
       width: 7,
       height: 7
     };
@@ -390,7 +404,7 @@ ThumbnailTool.prototype.draw = function() {
   this.ctx_.clearRect(0, 0, this.canvasLayer_.canvas.width, this.canvasLayer_.canvas.height);
   this.ctx_.strokeStyle = 'rgb(0,255,0)';
   this.ctx_.beginPath();
-  this.ctx_.strokeRect(scale(this.bounds_.xmin, cv.xmin, cv.xmax, 0, this.canvasLayer_.canvas.width), scale(this.bounds_.ymin, cv.ymin, cv.ymax, 0, this.canvasLayer_.canvas.height), (this.bounds_.xmax - this.bounds_.xmin) * v.scale, (this.bounds_.ymax - this.bounds_.ymin) * v.scale);
+  this.ctx_.strokeRect(this.scale(this.bounds_.xmin, cv.xmin, cv.xmax, 0, this.canvasLayer_.canvas.width), this.scale(this.bounds_.ymin, cv.ymin, cv.ymax, 0, this.canvasLayer_.canvas.height), (this.bounds_.xmax - this.bounds_.xmin) * v.scale, (this.bounds_.ymax - this.bounds_.ymin) * v.scale);
   this.ctx_.fillStyle = 'rgb(0,255,0)';
 
   for (var i = 0; i < this.handles_.length; i++) {
@@ -453,7 +467,6 @@ ThumbnailTool.prototype.filter = function(callback) {
     return false;
   }
   var el = document.getElementById('chart');
-  el.style['background'] = "url('images/ajax-loader.gif') #fff center no-repeat";
   if ( typeof chart != "undefined") {
     chart.clearChart();
   }
@@ -597,16 +610,4 @@ function drawResults(response) {
       row: thumbnailTool.timelapse_.getCurrentFrameNumber()
     }]);
   });
-}
-
-function supportsPointerEventsNone() {
-  if (navigator.appName == 'Microsoft Internet Explorer') {
-    var agent = navigator.userAgent;
-    if (agent.match(/MSIE ([0-9]{1,}[\.0-9]{0,})/) !== null) {
-      var version = parseFloat(RegExp.$1);
-      if (version < 11)
-        return false;
-    }
-  }
-  return true;
 }

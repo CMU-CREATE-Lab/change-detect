@@ -101,3 +101,7 @@ div.ui-dialog.ui-widget.ui-widget-content.ui-corner-all.ui-front.ui-draggable {
 .selectMove {
   cursor: move !important;
 }
+
+.ajax-loader {
+  background: url('../images/ajax-loader.gif') #fff center no-repeat;
+}
