@@ -196,14 +196,14 @@ var ThumbnailTool = function(timelapse, options) {
       if ( typeof selection != "undefined") {
         var frame = selection.row;
         that.timelapse_.seekToFrame(frame);
-        timelapse.setPlaybackRate(0.50, true, false);
+        that.timelapse_.setPlaybackRate(0.50, true, false);
       }
     });
 
-    thumbnailTool.timelapse_.addTimeChangeListener(function() {
+    that.timelapse_.addTimeChangeListener(function() {
       chart.setSelection([{
         column: 1,
-        row: thumbnailTool.timelapse_.getCurrentFrameNumber()
+        row: that.timelapse_.getCurrentFrameNumber()
       }]);
     });
   };
