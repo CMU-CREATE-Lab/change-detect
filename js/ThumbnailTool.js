@@ -1,5 +1,6 @@
 var ThumbnailTool = function(timelapse, options) {
   var that = this;
+  var scaleConstant = 40;
   var filterCallBack = function(r) {
     var o = JSON.parse(r);
     drawResults(o.values);
@@ -45,8 +46,6 @@ var ThumbnailTool = function(timelapse, options) {
     return true;
   };
 
-  var el = document.getElementById('thumbnail-tool');
-
   this.$videoDiv = $("#" + timelapse.getVideoDivId());
 
   if (this.options_.ltrb) {
@@ -66,7 +65,22 @@ var ThumbnailTool = function(timelapse, options) {
     this.filter(filterCallBack);
   }
 
-  el.addEventListener("mousedown", function(event) {
+  this.resetFilter = function() {
+    var view = that.timelapse_.getView();
+    var scaleOffsetX = scaleConstant / view.scale;
+    var scaleOffsetY = scaleConstant / view.scale;
+    var bounds = {
+      xmin: view.x - scaleOffsetX,
+      xmax: view.x + scaleOffsetX,
+      ymin: view.y - scaleOffsetY,
+      ymax: view.y + scaleOffsetY
+    };
+    that.setBounds(bounds);
+    that.draw();
+    that.filter(filterCallBack);
+  };
+
+  this.toggle = function() {
     if (that.display) {
       that.display = false;
       that.bounds_ = {};
@@ -79,7 +93,7 @@ var ThumbnailTool = function(timelapse, options) {
     } else {
       that.display = true;
       var view = timelapse.getView();
-      var scaleOffset = 100 / view.scale;
+      var scaleOffset = scaleConstant / view.scale;
       that.offset = {
         x: 0,
         y: 0
@@ -135,7 +149,7 @@ var ThumbnailTool = function(timelapse, options) {
         drawResults(o.values);
       });
     }
-  });
+  };
 
   var el = this.timelapse_.getDiv();
 
