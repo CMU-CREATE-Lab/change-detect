@@ -3,7 +3,7 @@ var ThumbnailTool = function(timelapse, options) {
   var scaleConstant = 40;
   var filterCallBack = function(r) {
     var o = JSON.parse(r);
-    drawResults(o.values);
+    that.drawResults(o.values);
   };
   this.timelapse_ = timelapse;
   this.options_ = options || {};
@@ -81,15 +81,15 @@ var ThumbnailTool = function(timelapse, options) {
   };
 
   this.toggle = function() {
+    var el = document.getElementById(that.options_.chartDivId);
     if (that.display) {
       that.display = false;
       that.bounds_ = {};
       that.erase();
-      if ( typeof chart != "undefined") {
-        chart.clearChart();
+      if ( typeof that.chart != "undefined") {
+        that.chart.clearChart();
       }
-      var el = document.getElementById('chart');
-      //el.style['background'] = "#ffffff";
+      el.style['display'] = "none";
     } else {
       that.display = true;
       var view = timelapse.getView();
@@ -144,11 +144,68 @@ var ThumbnailTool = function(timelapse, options) {
       };
 
       that.draw();
-      that.filter(function(r) {
-        var o = JSON.parse(r);
-        drawResults(o.values);
-      });
+      that.filter(filterCallBack);
+      el.style['display'] = "block";
     }
+  };
+
+  this.drawResults = function(response) {
+    var data = [];
+    data.push(['x', 'results']);
+    for (var i = 0; i < response.length; i++) {
+      var date = new Date(timelapse.getCaptureTimes()[i]);
+      data.push([date, response[i]]);
+    }
+    var chart = new google.visualization.LineChart(document.getElementById(that.options_.chartDivId));
+    that.chart = chart;
+    var options = {
+      hAxis: {
+        gridlines: {
+          count: 12
+        }
+      },
+      vAxis: {
+        textPosition: 'none',
+        title: 'Amount of Change',
+        minValue: 0,
+        viewWindow: {
+          min: 0
+        }
+      },
+      chartArea: {
+        left: 40,
+        top: 0,
+        width: "100%",
+        height: "80%"
+      },
+      legend: 'none',
+      curveType: 'function',
+      'tooltip': {
+        trigger: 'none'
+      }
+    };
+    data = google.visualization.arrayToDataTable(data);
+    chart.draw(data, options);
+    chart.setSelection([{
+      column: 1,
+      row: that.timelapse_.getCurrentFrameNumber()
+    }]);
+
+    google.visualization.events.addListener(chart, 'select', function() {
+      var selection = chart.getSelection()[0];
+      if ( typeof selection != "undefined") {
+        var frame = selection.row;
+        that.timelapse_.seekToFrame(frame);
+        timelapse.setPlaybackRate(0.50, true, false);
+      }
+    });
+
+    thumbnailTool.timelapse_.addTimeChangeListener(function() {
+      chart.setSelection([{
+        column: 1,
+        row: thumbnailTool.timelapse_.getCurrentFrameNumber()
+      }]);
+    });
   };
 
   var el = this.timelapse_.getDiv();
@@ -189,10 +246,7 @@ var ThumbnailTool = function(timelapse, options) {
 
   el.addEventListener("mouseup", function(event) {
     if (that.selected || that.resizing) {
-      that.filter(function(r) {
-        var o = JSON.parse(r);
-        drawResults(o.values);
-      });
+      that.filter(filterCallBack);
     }
     that.selected = false;
     that.resizing = false;
@@ -484,9 +538,9 @@ ThumbnailTool.prototype.filter = function(callback) {
   if (!this.doFilter) {
     return false;
   }
-  var el = document.getElementById('chart');
-  if ( typeof chart != "undefined") {
-    chart.clearChart();
+  var el = document.getElementById(this.options_.chartDivId);
+  if ( typeof this.chart != "undefined") {
+    this.chart.clearChart();
   }
   var config = {
     'host': 'http://timemachine-api.cmucreatelab.org/thumbnail'
@@ -569,63 +623,3 @@ ThumbnailTool.prototype.getCurrentGif = function() {
   var t = new ThumbnailServiceAPI(config, args);
   return (t.serialize());
 };
-
-var data = [];
-var chart;
-function drawResults(response) {
-  data = [];
-  data.push(['x', 'results']);
-  for (var i = 0; i < response.length; i++) {
-    var date = new Date(timelapse.getCaptureTimes()[i]);
-    data.push([date, response[i]]);
-  }
-  chart = new google.visualization.LineChart(document.getElementById('chart'));
-  var options = {
-    hAxis: {
-      gridlines: {
-        count: 12
-      }
-    },
-    vAxis: {
-      textPosition: 'none',
-      title: 'Amount of Change',
-      minValue: 0,
-      viewWindow: {
-        min: 0
-      }
-    },
-    chartArea: {
-      left: 40,
-      top: 0,
-      width: "100%",
-      height: "80%"
-    },
-    legend: 'none',
-    curveType: 'function',
-    'tooltip': {
-      trigger: 'none'
-    }
-  };
-  data = google.visualization.arrayToDataTable(data);
-  chart.draw(data, options);
-  chart.setSelection([{
-    column: 1,
-    row: thumbnailTool.timelapse_.getCurrentFrameNumber()
-  }]);
-
-  google.visualization.events.addListener(chart, 'select', function() {
-    var selection = chart.getSelection()[0];
-    if ( typeof selection != "undefined") {
-      var frame = selection.row;
-      thumbnailTool.timelapse_.seekToFrame(frame);
-      timelapse.setPlaybackRate(0.50, true, false);
-    }
-  });
-
-  thumbnailTool.timelapse_.addTimeChangeListener(function() {
-    chart.setSelection([{
-      column: 1,
-      row: thumbnailTool.timelapse_.getCurrentFrameNumber()
-    }]);
-  });
-}
