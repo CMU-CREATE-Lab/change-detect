@@ -3,7 +3,7 @@ var ThumbnailTool = function(timelapse, options) {
   var scaleConstant = 40;
   var filterCallBack = function(r) {
     var el = document.getElementById(that.options_.chartDivId);
-    if ( typeof el != "undefined") {
+    if ( typeof el != "undefined" && el != null) {
       var o = JSON.parse(r);
       that.drawResults(o.values);
     }
@@ -91,7 +91,7 @@ var ThumbnailTool = function(timelapse, options) {
       that.display = false;
       that.bounds_ = {};
       that.erase();
-      if ( typeof el != "undefined") {
+      if ( typeof el != "undefined" && el != null) {
         el.style['display'] = "none";
       }
       if ( typeof that.chart != "undefined") {
@@ -153,7 +153,7 @@ var ThumbnailTool = function(timelapse, options) {
 
       that.draw();
       that.filter(filterCallBack);
-      if ( typeof el != "undefined") {
+      if ( typeof el != "undefined" && el != null) {
         el.style['display'] = "block";
       }
     }
