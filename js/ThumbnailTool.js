@@ -2,7 +2,8 @@ var ThumbnailTool = function(timelapse, options) {
   var that = this;
   var scaleConstant = 40;
   var filterCallBack = function(r) {
-    if ( typeof that.chart != "undefined") {
+    var el = document.getElementById(that.options_.chartDivId);
+    if ( typeof el != "undefined") {
       var o = JSON.parse(r);
       that.drawResults(o.values);
     }
@@ -13,7 +14,9 @@ var ThumbnailTool = function(timelapse, options) {
     timelapse: timelapse,
     resizeHandler: function() {
       that.resize();
-      that.filter(filterCallBack);
+      if ( typeof that.chart != "undefined") {
+        that.filter(filterCallBack);
+      }
     },
     animate: false,
     updateHandler: function() {
@@ -88,10 +91,13 @@ var ThumbnailTool = function(timelapse, options) {
       that.display = false;
       that.bounds_ = {};
       that.erase();
-      if ( typeof that.chart != "undefined") {
-        that.chart.clearChart();
+      if ( typeof el != "undefined") {
         el.style['display'] = "none";
       }
+      if ( typeof that.chart != "undefined") {
+        that.chart.clearChart();
+      }
+      this.xhr.abort();
     } else {
       that.display = true;
       var view = timelapse.getView();
@@ -147,7 +153,7 @@ var ThumbnailTool = function(timelapse, options) {
 
       that.draw();
       that.filter(filterCallBack);
-      if ( typeof that.chart != "undefined") {
+      if ( typeof el != "undefined") {
         el.style['display'] = "block";
       }
     }
