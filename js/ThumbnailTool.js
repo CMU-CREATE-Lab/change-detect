@@ -2,8 +2,10 @@ var ThumbnailTool = function(timelapse, options) {
   var that = this;
   var scaleConstant = 40;
   var filterCallBack = function(r) {
-    var o = JSON.parse(r);
-    that.drawResults(o.values);
+    if ( typeof that.chart != "undefined") {
+      var o = JSON.parse(r);
+      that.drawResults(o.values);
+    }
   };
   this.timelapse_ = timelapse;
   this.options_ = options || {};
@@ -88,8 +90,8 @@ var ThumbnailTool = function(timelapse, options) {
       that.erase();
       if ( typeof that.chart != "undefined") {
         that.chart.clearChart();
+        el.style['display'] = "none";
       }
-      el.style['display'] = "none";
     } else {
       that.display = true;
       var view = timelapse.getView();
@@ -145,7 +147,9 @@ var ThumbnailTool = function(timelapse, options) {
 
       that.draw();
       that.filter(filterCallBack);
-      el.style['display'] = "block";
+      if ( typeof that.chart != "undefined") {
+        el.style['display'] = "block";
+      }
     }
   };
 
@@ -332,6 +336,7 @@ var ThumbnailTool = function(timelapse, options) {
       event.stopPropagation();
     }
   });
+  that.toggle();
 };
 
 ThumbnailTool.prototype.toggleLayer = function() {
@@ -553,7 +558,7 @@ ThumbnailTool.prototype.filter = function(callback) {
     'nframes': this.timelapse_.getDatasetJSON().frames,
     'filter': 'difference-filter',
     'format': 'rgb24',
-    'tileFormat': this.timelapse_.getSettings().mediaType.slice(1)
+    'tileFormat': this.timelapse_.getMediaType().slice(1)
   };
 
   var t = new ThumbnailServiceAPI(config, args);
@@ -599,7 +604,7 @@ ThumbnailTool.prototype.getCurrentThumbnail = function() {
     'height': (this.bounds_.ymax - this.bounds_.ymin) * v.scale,
     'frameTime': this.timelapse_.getCurrentFrameNumber() / this.timelapse_.getFps(),
     'format': 'png',
-    'tileFormat': this.timelapse_.getSettings().mediaType.slice(1)
+    'tileFormat': this.timelapse_.getMediaType().slice(1)
   };
   var t = new ThumbnailServiceAPI(config, args);
   return (t.serialize());
@@ -618,7 +623,7 @@ ThumbnailTool.prototype.getCurrentGif = function() {
     'frameTime': this.timelapse_.getCurrentFrameNumber() / this.timelapse_.getFps(),
     'nframes': 10,
     'format': 'gif',
-    'tileFormat': this.timelapse_.getSettings().mediaType.slice(1)
+    'tileFormat': this.timelapse_.getMediaType().slice(1)
   };
   var t = new ThumbnailServiceAPI(config, args);
   return (t.serialize());
