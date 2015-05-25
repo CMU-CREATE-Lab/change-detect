@@ -39,15 +39,6 @@ var ThumbnailTool = function(timelapse, options) {
   };
   this.hideCropBox = hideCropBox;
 
-  var toggleCropBox = function() {
-    if (isCropBoxHidden) {
-      showCropBox();
-    } else {
-      hideCropBox();
-    };
-  };
-  this.toggleCropBox = toggleCropBox;
-
   var centerAndDrawCropBox = function(size) {
     centerCropBox(size);
     drawCropBox();
@@ -64,15 +55,19 @@ var ThumbnailTool = function(timelapse, options) {
       boundsLTRB: bound.xmin + "," + bound.ymin + "," + bound.xmax + "," + bound.ymax,
       width: cropBox.xmax - cropBox.xmin,
       height: cropBox.ymax - cropBox.ymin,
-      frameTime: timelapse.getCurrentTime(),
+      frameTime: ( typeof (settings["startTime"]) == "undefined") ? timelapse.getCurrentTime() : settings["startTime"],
       format: ( typeof (settings["format"]) == "undefined") ? "png" : settings["format"],
       tileFormat: timelapse.getMediaType().slice(1)
     };
 
-    if (args.format == "gif") {
-      args.nframes = ( typeof (settings["nframes"]) == "undefined") ? 10 : settings["nframes"];
-    } else if (args.format == "mp4" || args.format == "webm") {
-      args.nframes = ( typeof (settings["nframes"]) == "undefined") ? 50 : settings["nframes"];
+    if ( typeof (settings["endTime"]) == "undefined") {
+      if (args.format == "gif") {
+        args.nframes = ( typeof (settings["nframes"]) == "undefined") ? 10 : settings["nframes"];
+      } else if (args.format == "mp4" || args.format == "webm") {
+        args.nframes = ( typeof (settings["nframes"]) == "undefined") ? 50 : settings["nframes"];
+      }
+    } else {
+      args.nframes = (settings["endTime"] - args.frameTime) * timelapse.getFps();
     }
 
     var t = new ThumbnailServiceAPI(config, args);
@@ -131,7 +126,7 @@ var ThumbnailTool = function(timelapse, options) {
       cropBox.xmax = xmax_box;
       /*
        * 0 1 2
-       * 7   3
+       * 7 8 3
        * 6 5 4
        */
       cropHandle[0].xmin = xmin_box - cropHandleSize;
@@ -142,6 +137,7 @@ var ThumbnailTool = function(timelapse, options) {
       cropHandle[5].xmin = cropHandle[1].xmin;
       cropHandle[6].xmin = cropHandle[0].xmin;
       cropHandle[7].xmin = cropHandle[0].xmin;
+      cropHandle[8].xmin = cropHandle[1].xmin;
       for (var i = 0; i < cropHandle.length; i++) {
         cropHandle[i].xmax = cropHandle[i].xmin + cropHandleSize;
       }
@@ -151,7 +147,7 @@ var ThumbnailTool = function(timelapse, options) {
       cropBox.ymax = ymax_box;
       /*
        * 0 1 2
-       * 7   3
+       * 7 8 3
        * 6 5 4
        */
       cropHandle[0].ymin = ymin_box - cropHandleSize;
@@ -162,6 +158,7 @@ var ThumbnailTool = function(timelapse, options) {
       cropHandle[5].ymin = ymax_box;
       cropHandle[6].ymin = ymax_box;
       cropHandle[7].ymin = cropHandle[3].ymin;
+      cropHandle[8].ymin = cropHandle[3].ymin;
       for (var i = 0; i < cropHandle.length; i++) {
         cropHandle[i].ymax = cropHandle[i].ymin + cropHandleSize;
       }
@@ -248,22 +245,27 @@ var ThumbnailTool = function(timelapse, options) {
   };
 
   var resizeCropBox = function(index, x, y) {
-    if (index == 0)
+    if (index == 0) {
       setAndDrawCropBox(x, y, undefined, undefined);
-    else if (index == 1)
+    } else if (index == 1) {
       setAndDrawCropBox(undefined, y, undefined, undefined);
-    else if (index == 2)
+    } else if (index == 2) {
       setAndDrawCropBox(undefined, y, x, undefined);
-    else if (index == 3)
+    } else if (index == 3) {
       setAndDrawCropBox(undefined, undefined, x, undefined);
-    else if (index == 4)
+    } else if (index == 4) {
       setAndDrawCropBox(undefined, undefined, x, y);
-    else if (index == 5)
+    } else if (index == 5) {
       setAndDrawCropBox(undefined, undefined, undefined, y);
-    else if (index == 6)
+    } else if (index == 6) {
       setAndDrawCropBox(x, undefined, undefined, y);
-    else if (index == 7)
+    } else if (index == 7) {
       setAndDrawCropBox(x, undefined, undefined, undefined);
+    } else if (index == 8) {
+      var offsetX = (cropBox.xmin + cropBox.xmax) / 2 - x;
+      var offsetY = (cropBox.ymin + cropBox.ymax) / 2 - y;
+      setAndDrawCropBox(cropBox.xmin - offsetX, cropBox.ymin - offsetY, cropBox.xmax - offsetX, cropBox.ymax - offsetY);
+    }
   };
 
   ///////////////////////////////////////////////////////////////////
@@ -292,7 +294,7 @@ var ThumbnailTool = function(timelapse, options) {
     xmax: undefined,
     ymax: undefined
   };
-  for (var i = 0; i < 8; i++) {
+  for (var i = 0; i < 9; i++) {
     cropHandle[i] = {
       xmin: undefined,
       ymin: undefined,
