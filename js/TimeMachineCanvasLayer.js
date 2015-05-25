@@ -1,8 +1,3 @@
-org.gigapan.timelapse.Timelapse.prototype.getDiv = function() {
-  var el = this.getViewerDiv();
-  return el;
-}
-
 org.gigapan.timelapse.Timelapse.prototype.getScale = function() {
   var view = this.getView();
   return view.scale;
@@ -19,7 +14,6 @@ org.gigapan.timelapse.OverlayView.prototype.setTimelapse = function(timelapse) {
 org.gigapan.timelapse.OverlayView.prototype.getTimelapse = function() {
   return this.timelapse;
 }
-
 /**
  * Copyright 2012 Google Inc. All Rights Reserved.
  *
@@ -147,7 +141,9 @@ function TimeMachineCanvasLayer(opt_options) {
    * @param {function} func The function to be bound.
    */
   function simpleBindShim(thisArg, func) {
-    return function() { func.apply(thisArg); };
+    return function() {
+      func.apply(thisArg);
+    };
   }
 
   /**
@@ -196,13 +192,7 @@ TimeMachineCanvasLayer.DEFAULT_PANE_NAME_ = 'overlayLayer';
  */
 TimeMachineCanvasLayer.CSS_TRANSFORM_ = (function() {
   var div = document.createElement('div');
-  var transformProps = [
-    'transform',
-    'WebkitTransform',
-    'MozTransform',
-    'OTransform',
-    'msTransform'
-  ];
+  var transformProps = ['transform', 'WebkitTransform', 'MozTransform', 'OTransform', 'msTransform'];
   for (var i = 0; i < transformProps.length; i++) {
     var prop = transformProps[i];
     if (div.style[prop] !== undefined) {
@@ -222,15 +212,10 @@ TimeMachineCanvasLayer.CSS_TRANSFORM_ = (function() {
  * @return {number} The browser-defined id for the requested callback.
  * @private
  */
-TimeMachineCanvasLayer.prototype.requestAnimFrame_ =
-    window.requestAnimationFrame ||
-    window.webkitRequestAnimationFrame ||
-    window.mozRequestAnimationFrame ||
-    window.oRequestAnimationFrame ||
-    window.msRequestAnimationFrame ||
-    function(callback) {
-      return window.setTimeout(callback, 1000 / 60);
-    };
+TimeMachineCanvasLayer.prototype.requestAnimFrame_ = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
+function(callback) {
+  return window.setTimeout(callback, 1000 / 60);
+};
 
 /**
  * The cancelAnimationFrame function, with vendor-prefixed fallback. Does not
@@ -241,13 +226,9 @@ TimeMachineCanvasLayer.prototype.requestAnimFrame_ =
  * @param {number=} requestId The id of the frame request to cancel.
  * @private
  */
-TimeMachineCanvasLayer.prototype.cancelAnimFrame_ =
-    window.cancelAnimationFrame ||
-    window.webkitCancelAnimationFrame ||
-    window.mozCancelAnimationFrame ||
-    window.oCancelAnimationFrame ||
-    window.msCancelAnimationFrame ||
-    function(requestId) {};
+TimeMachineCanvasLayer.prototype.cancelAnimFrame_ = window.cancelAnimationFrame || window.webkitCancelAnimationFrame || window.mozCancelAnimationFrame || window.oCancelAnimationFrame || window.msCancelAnimationFrame ||
+function(requestId) {
+};
 
 /**
  * Sets any options provided. See CanvasLayerOptions for more information.
@@ -327,25 +308,25 @@ TimeMachineCanvasLayer.prototype.setPane_ = function() {
 
   // onAdd has been called, so panes can be used
   /*
-  var panes = this.getPanes();
-  if (!panes[this.paneName_]) {
-    throw new Error('"' + this.paneName_ + '" is not a valid MapPane name.');
-  }
+   var panes = this.getPanes();
+   if (!panes[this.paneName_]) {
+   throw new Error('"' + this.paneName_ + '" is not a valid MapPane name.');
+   }
 
-  panes[this.paneName_].appendChild(this.canvas);
-  */
-    var div = document.createElement("div");
-    div.id = this.paneName_;
-    div.style.position = 'absolute';
-    div.style.top = 0;
-    div.style.left = 0;
-    div.style.zIndex = 10;
-    div.style.width = "100%";
-    div.appendChild(this.canvas);
+   panes[this.paneName_].appendChild(this.canvas);
+   */
+  var div = document.createElement("div");
+  div.id = this.paneName_;
+  div.style.position = 'absolute';
+  div.style.top = 0;
+  div.style.left = 0;
+  div.style.zIndex = 10;
+  div.style.width = "100%";
+  div.appendChild(this.canvas);
 
-    var timelapse = this.getTimelapse();
-    var parent = timelapse.getDiv();
-    parent.insertBefore(div, parent.children[0]);
+  var timelapse = this.getTimelapse();
+  var parent = document.getElementById(timelapse.getDataPanesContainerId());
+  parent.insertBefore(div, parent.children[0]);
 };
 
 /**
@@ -379,12 +360,12 @@ TimeMachineCanvasLayer.prototype.onAdd = function() {
   this.isAdded_ = true;
   this.setPane_();
 
-/*
-  this.resizeListener_ = google.maps.event.addListener(this.getMap(),
-      'resize', this.resizeFunction_);
-  this.centerListener_ = google.maps.event.addListener(this.getMap(),
-      'center_changed', this.repositionFunction_);
-*/
+  /*
+   this.resizeListener_ = google.maps.event.addListener(this.getMap(),
+   'resize', this.resizeFunction_);
+   this.centerListener_ = google.maps.event.addListener(this.getMap(),
+   'center_changed', this.repositionFunction_);
+   */
 
   var timelapse = this.getTimelapse();
   // TODO(gabrielo): we should subscribe to the timelapse resize event listener
@@ -439,8 +420,8 @@ TimeMachineCanvasLayer.prototype.resize_ = function() {
   }
 
   var timelapse = this.getTimelapse();
-  var width = timelapse.getDiv().offsetWidth;
-  var height = timelapse.getDiv().offsetHeight;
+  var width = timelapse.getViewerDiv().offsetWidth;
+  var height = timelapse.getViewerDiv().offsetHeight;
   var oldWidth = this.canvas.width;
   var oldHeight = this.canvas.height;
 
@@ -474,19 +455,19 @@ TimeMachineCanvasLayer.prototype.repositionCanvas_ = function() {
   //     this causes noticeable hitches in map and overlay relative
   //     positioning.
 
-/*
+  /*
   var bounds = this.getTimelapse().getBounds();
   this.topLeft_ = new google.maps.LatLng(bounds.getNorthEast().lat(),
-      bounds.getSouthWest().lng());
-*/
+  bounds.getSouthWest().lng());
+  */
   // canvas position relative to draggable map's conatainer depends on
   // overlayView's projection, not the map's
-/*
-  var projection = this.getProjection();
-  var divTopLeft = projection.fromLatLngToDivPixel(this.topLeft_);
-  this.canvas.style[TimeMachineCanvasLayer.CSS_TRANSFORM_] = 'translate(' +
-      Math.round(divTopLeft.x) + 'px,' + Math.round(divTopLeft.y) + 'px)';
-*/
+  /*
+   var projection = this.getProjection();
+   var divTopLeft = projection.fromLatLngToDivPixel(this.topLeft_);
+   this.canvas.style[TimeMachineCanvasLayer.CSS_TRANSFORM_] = 'translate(' +
+   Math.round(divTopLeft.x) + 'px,' + Math.round(divTopLeft.y) + 'px)';
+   */
   this.scheduleUpdate();
 };
 
@@ -532,7 +513,6 @@ TimeMachineCanvasLayer.prototype.getTopLeft = function() {
  */
 TimeMachineCanvasLayer.prototype.scheduleUpdate = function() {
   if (this.isAdded_ && !this.requestAnimationFrameId_) {
-    this.requestAnimationFrameId_ =
-        this.requestAnimFrame_.call(window, this.requestUpdateFunction_);
+    this.requestAnimationFrameId_ = this.requestAnimFrame_.call(window, this.requestUpdateFunction_);
   }
 };
