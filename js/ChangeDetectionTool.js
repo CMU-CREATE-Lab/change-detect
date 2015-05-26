@@ -221,7 +221,6 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
     filterHandle[7].ymin = bound.ymin + (bound.ymax - bound.ymin) / 2.0;
     filterHandle[8].xmin = bound.xmin + (bound.xmax - bound.xmin) / 2.0;
     filterHandle[8].ymin = bound.ymin + (bound.ymax - bound.ymin) / 2.0;
-    filter();
   };
 
   var clearCanvas = function() {
@@ -312,7 +311,7 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
   };
 
   var mouseupListener = function(event) {
-    boxEventHandler.mouseupHandler(event);
+    boxEventHandler.mouseupHandler(event, filter);
   };
 
   var mousedownListener = function(event) {

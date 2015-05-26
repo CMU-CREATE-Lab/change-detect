@@ -37,7 +37,10 @@ var BoxEventHandler = function(timelapse) {
     }
   };
 
-  this.mouseupHandler = function(event) {
+  this.mouseupHandler = function(event, afterDragCallBack) {
+    if (isMousedrag == true) {
+      afterDragCallBack();
+    }
     isMousedown = false;
     isMousedrag = false;
     diffBetweenMouseAndHandle = null;
