@@ -38,7 +38,7 @@ var BoxEventHandler = function(timelapse) {
   };
 
   this.mouseupHandler = function(event, afterDragCallBack) {
-    if (isMousedrag == true) {
+    if (isMousedrag == true && typeof afterDragCallBack == "function") {
       afterDragCallBack();
     }
     isMousedown = false;

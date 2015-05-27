@@ -69,9 +69,15 @@ var ThumbnailTool = function(timelapse, options) {
     } else {
       args.nframes = (settings["endTime"] - args.frameTime) * timelapse.getFps();
     }
+    if ( typeof args.nframes != "undefined") {
+      args.nframes = parseInt(Math.round(args.nframes));
+    }
 
     var t = new ThumbnailServiceAPI(config, args);
-    return (t.serialize());
+    return {
+      url: t.serialize(),
+      args: args
+    };
   };
   this.getURL = getURL;
 
