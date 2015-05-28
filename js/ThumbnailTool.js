@@ -57,7 +57,7 @@ var ThumbnailTool = function(timelapse, options) {
       height: cropBox.ymax - cropBox.ymin,
       frameTime: ( typeof (settings["startTime"]) == "undefined") ? timelapse.getCurrentTime() : settings["startTime"],
       format: ( typeof (settings["format"]) == "undefined") ? "png" : settings["format"],
-      delay: ( typeof (settings["delay"]) == "undefined") ? timelapse.getFps() : settings["delay"],
+      fps: ( typeof (settings["fps"]) == "undefined") ? timelapse.getFps() : settings["fps"],
       tileFormat: timelapse.getMediaType().slice(1)
     };
 
