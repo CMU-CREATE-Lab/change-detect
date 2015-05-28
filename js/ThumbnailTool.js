@@ -61,6 +61,9 @@ var ThumbnailTool = function(timelapse, options) {
       tileFormat: timelapse.getMediaType().slice(1)
     };
 
+    if (settings.embedTime)
+      args.labelsFromDataset = "";
+
     if ( typeof (settings["endTime"]) == "undefined") {
       if (args.format == "gif") {
         args.nframes = ( typeof (settings["nframes"]) == "undefined") ? 10 : settings["nframes"];
