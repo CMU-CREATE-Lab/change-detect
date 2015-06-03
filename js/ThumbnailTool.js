@@ -179,7 +179,7 @@ var ThumbnailTool = function(timelapse, options) {
     clearCanvas();
     ctx.beginPath();
     // Draw the mask
-    ctx.fillStyle = "rgba(0,0,0,0.8)";
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
     ctx.moveTo(0, 0);
     ctx.lineTo(canvasLayer.canvas.width, 0);
     ctx.lineTo(canvasLayer.canvas.width, canvasLayer.canvas.height);
@@ -289,7 +289,7 @@ var ThumbnailTool = function(timelapse, options) {
     animate: false,
     id: "thumbnailTool",
     resizeHandler: function() {
-      centerCropBox("large");
+      centerCropBox("medium");
       if (!isCropBoxHidden) {
         drawCropBox();
       }
@@ -312,5 +312,5 @@ var ThumbnailTool = function(timelapse, options) {
       ymax: undefined
     };
   }
-  centerCropBox("large");
+  centerCropBox("medium");
 };
