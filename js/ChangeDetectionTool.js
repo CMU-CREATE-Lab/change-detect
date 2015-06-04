@@ -7,9 +7,11 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
   // Variables for the change detection chart
   var $viewerDiv = $(timelapse.getViewerDiv());
   var $chartContainer;
-  var googleChart;
+  var $chartContainerContent;
   var xhr = null;
   var requestMade = false;
+  var data = [];
+  var chart;
 
   // Variables for drawing the current marked area for change detection
   var canvasLayer;
@@ -21,6 +23,7 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
   var filterHandleHalfSize = filterHandleSize / 2.0;
   var boxEventHandler = new BoxEventHandler(timelapse);
   var $dataPanesContainer = $("#" + timelapse.getDataPanesContainerId());
+
 
   ///////////////////////////////////////////////////////////////////
   //
@@ -71,8 +74,8 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
     if (!$chartContainer.hasClass("ajax-loader")) {
       $chartContainer.addClass("ajax-loader");
     }
-    if ( typeof googleChart != "undefined") {
-      googleChart.clearChart();
+    if ( typeof $chartContainerContent != "undefined") {
+      $chartContainerContent.hide();
     }
     var config = {
       host: 'http://timemachine-api.cmucreatelab.org/thumbnail'
@@ -346,61 +349,40 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
   };
 
   var drawResults = function(response) {
-    var data = [];
-    data.push(['x', 'results']);
+    data = [];
     for (var i = 0; i < response.length; i++) {
       var date = new Date(timelapse.getCaptureTimes()[i]);
-      data.push([date, response[i]]);
+      data.push({x: date, y: response[i], frame: i});
     }
-    googleChart = new google.visualization.LineChart($chartContainer[0]);
-    var options = {
-      hAxis: {
-        gridlines: {
-          count: 12
-        }
-      },
-      vAxis: {
-        textPosition: 'none',
-        title: 'Amount of Change',
-        minValue: 0,
-        viewWindow: {
-          min: 0
-        }
-      },
-      chartArea: {
-        left: 40,
-        top: 0,
-        width: "100%",
-        height: "80%"
-      },
-      legend: 'none',
-      curveType: 'function',
-      'tooltip': {
-        trigger: 'none'
-      }
-    };
-    data = google.visualization.arrayToDataTable(data);
-    googleChart.draw(data, options);
-    googleChart.setSelection([{
-      column: 1,
-      row: timelapse.getCurrentFrameNumber()
-    }]);
-
-    google.visualization.events.addListener(googleChart, 'select', function() {
-      var selection = googleChart.getSelection()[0];
-      if ( typeof selection != "undefined") {
-        var frame = selection.row;
-        timelapse.seekToFrame(frame);
-        timelapse.setPlaybackRate(0.50, true, false);
-      }
-    });
-
-    timelapse.addTimeChangeListener(function() {
-      googleChart.setSelection([{
-        column: 1,
-        row: timelapse.getCurrentFrameNumber()
-      }]);
-    });
+    if (!chart) {
+      chart = new CanvasJS.Chart("change-detection-container", {
+        zoomEnabled: true,
+        axisX: {
+          title: "Time",
+          valueFormatString: "hh:mm:ss TT"
+        },
+        axisY: {
+          title: "Amount of Change"
+        },
+        toolTip: {
+          animationEnabled: false,
+          content: "{x}"
+        },
+        data: [
+          {
+            type: "line",
+            cursor: "pointer",
+            click: function(e){
+              timelapse.seekToFrame(e.dataPoint.frame);
+            },
+            dataPoints: data
+          }
+        ]
+      });
+      $chartContainerContent = $("#" + timelapse.getViewerDivId() + " .canvasjs-chart-container");
+    }
+    $chartContainerContent.show();
+    chart.render();
   };
 
   ///////////////////////////////////////////////////////////////////
@@ -409,7 +391,7 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
   //
 
   // Create a chart div at the bottom of time machine viewer
-  $chartContainer = $("<div class='change-detection-chart empty-chart'></div>");
+  $chartContainer = $("<div id='change-detection-container' class='change-detection-chart empty-chart'></div>");
   $chartContainer.hide();
   $viewerDiv.append($chartContainer);
   resizeUI();
