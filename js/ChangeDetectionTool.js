@@ -62,11 +62,6 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
   };
   this.resizeUI = resizeUI;
 
-  ///////////////////////////////////////////////////////////////////
-  //
-  // private functions
-  //
-
   var filter = function() {
     if ($chartContainer.hasClass("empty-chart")) {
       $chartContainer.removeClass("empty-chart");
@@ -74,7 +69,7 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
     if (!$chartContainer.hasClass("ajax-loader")) {
       $chartContainer.addClass("ajax-loader");
     }
-    if ( typeof $chartContainerContent != "undefined") {
+    if (typeof $chartContainerContent != "undefined") {
       $chartContainerContent.hide();
     }
     var config = {
@@ -124,6 +119,12 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
     xhr.open('GET', t.serialize(), true);
     xhr.send();
   };
+  this.filter = filter;
+
+  ///////////////////////////////////////////////////////////////////
+  //
+  // private functions
+  //
 
   var hideFilterBound = function() {
     if (!isFilterBoundHidden) {
@@ -314,7 +315,7 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
   };
 
   var mouseupListener = function(event) {
-    boxEventHandler.mouseupHandler(event, filter);
+    boxEventHandler.mouseupHandler(event);
   };
 
   var mousedownListener = function(event) {
@@ -372,7 +373,7 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
           {
             type: "line",
             cursor: "pointer",
-            click: function(e){
+            click: function(e) {
               timelapse.seekToFrame(e.dataPoint.frame);
             },
             dataPoints: data
@@ -401,7 +402,7 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
     timelapse: timelapse,
     animate: false,
     updateHandler: function() {
-      if ( typeof filterBound.xmin != "undefined" && !isFilterBoundHidden) {
+      if (typeof filterBound.xmin != "undefined" && !isFilterBoundHidden) {
         drawFilterBound();
       }
     },
