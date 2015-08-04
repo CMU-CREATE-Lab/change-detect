@@ -15,6 +15,8 @@ var ThumbnailTool = function(timelapse, options) {
   var isCropBoxHidden = true;
   var $dataPanesContainer = $("#" + timelapse.getDataPanesContainerId());
   var boxEventHandler = new BoxEventHandler(timelapse);
+  var boxWidth;
+  var boxHeight;
 
   ///////////////////////////////////////////////////////////////////
   //
@@ -103,6 +105,11 @@ var ThumbnailTool = function(timelapse, options) {
   };
   this.cropBoxToViewBox = cropBoxToViewBox;
 
+  var getBoxSize = function() {
+    return Math.round(boxWidth) + "x" + Math.round(boxHeight);
+  };
+  this.getBoxSize = getBoxSize;
+
   ///////////////////////////////////////////////////////////////////
   //
   // private functions
@@ -173,6 +180,10 @@ var ThumbnailTool = function(timelapse, options) {
         cropHandle[i].ymax = cropHandle[i].ymin + cropHandleSize;
       }
     }
+
+    boxWidth = (xmax_box - xmin_box);
+    boxHeight = (ymax_box - ymin_box);
+
   };
 
   var drawCropBox = function() {
