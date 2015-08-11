@@ -121,6 +121,45 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
   };
   this.filter = filter;
 
+  var drawResults = function(response) {
+    data = [];
+    for (var i = 0; i < response.length; i++) {
+      var date = new Date(timelapse.getCaptureTimes()[i]);
+      data.push({x: date, y: response[i], frame: i});
+    }
+    if (!chart) {
+      chart = new CanvasJS.Chart("change-detection-container", {
+        zoomEnabled: true,
+        axisX: {
+          title: "Time",
+          valueFormatString: "hh:mm:ss TT"
+        },
+        axisY: {
+          title: "Amount of Change"
+        },
+        toolTip: {
+          animationEnabled: false,
+          content: "{x}"
+        },
+        data: [
+          {
+            type: "line",
+            cursor: "pointer",
+            click: function(e) {
+              timelapse.seekToFrame(e.dataPoint.frame);
+            },
+            dataPoints: data
+          }
+        ]
+      });
+      $chartContainerContent = $("#" + timelapse.getViewerDivId() + " .canvasjs-chart-container");
+    }
+    $chartContainerContent.show();
+    chart.render();
+  };
+  this.drawResults = drawResults;
+
+
   ///////////////////////////////////////////////////////////////////
   //
   // private functions
@@ -347,43 +386,6 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
       var box = getHandleBox(i);
       ctx.fillRect(box.xmin, box.ymin, filterHandleSize, filterHandleSize);
     }
-  };
-
-  var drawResults = function(response) {
-    data = [];
-    for (var i = 0; i < response.length; i++) {
-      var date = new Date(timelapse.getCaptureTimes()[i]);
-      data.push({x: date, y: response[i], frame: i});
-    }
-    if (!chart) {
-      chart = new CanvasJS.Chart("change-detection-container", {
-        zoomEnabled: true,
-        axisX: {
-          title: "Time",
-          valueFormatString: "hh:mm:ss TT"
-        },
-        axisY: {
-          title: "Amount of Change"
-        },
-        toolTip: {
-          animationEnabled: false,
-          content: "{x}"
-        },
-        data: [
-          {
-            type: "line",
-            cursor: "pointer",
-            click: function(e) {
-              timelapse.seekToFrame(e.dataPoint.frame);
-            },
-            dataPoints: data
-          }
-        ]
-      });
-      $chartContainerContent = $("#" + timelapse.getViewerDivId() + " .canvasjs-chart-container");
-    }
-    $chartContainerContent.show();
-    chart.render();
   };
 
   ///////////////////////////////////////////////////////////////////
