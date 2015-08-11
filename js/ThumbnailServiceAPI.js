@@ -1,7 +1,7 @@
 // ThumbnailServiceAPI.js
 
 var ThumbnailServiceAPI = function (config, args) {
-  this.host = (config && config.host) ? config.host : "http://timemachine-api.cmucreatelab.org/thumbnail";
+  this.host = (config && config.host) ? config.host : "http://thumbnails.cmucreatelab.org/thumbnail";
   this.args = (args) ? args : {};
 }
 

@@ -50,7 +50,7 @@ var ThumbnailTool = function(timelapse, options) {
   var getURL = function(settings) {
     var bound = cropBoxToViewBox();
     var config = {
-      host: "http://timemachine-api.cmucreatelab.org/thumbnail"
+      host: "http://thumbnails.cmucreatelab.org/thumbnail"
     };
     var args = {
       root: timelapse.getSettings().url,

@@ -73,7 +73,7 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
       $chartContainerContent.hide();
     }
     var config = {
-      host: 'http://timemachine-api.cmucreatelab.org/thumbnail'
+      host: 'http://thumbnails.cmucreatelab.org/thumbnail'
     };
     var args = {
       root: timelapse.getSettings().url,
@@ -140,20 +140,20 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
         toolTip: {
           animationEnabled: false,
           content: "{x}"
-        },
-        data: [
-          {
-            type: "line",
-            cursor: "pointer",
-            click: function(e) {
-              timelapse.seekToFrame(e.dataPoint.frame);
-            },
-            dataPoints: data
-          }
-        ]
+        }
       });
       $chartContainerContent = $("#" + timelapse.getViewerDivId() + " .canvasjs-chart-container");
     }
+    chart.options.data = [
+      {
+        type: "line",
+        cursor: "pointer",
+        click: function(e) {
+          timelapse.seekToFrame(e.dataPoint.frame);
+        },
+        dataPoints: data
+      }
+    ];
     $chartContainerContent.show();
     chart.render();
   };
