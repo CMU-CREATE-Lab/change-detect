@@ -143,6 +143,7 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
         }
       });
       $chartContainerContent = $("#" + timelapse.getViewerDivId() + " .canvasjs-chart-container");
+      timelapse.addTimeChangeListener(timeChangeListener);
     }
     chart.options.data = [
       {
@@ -154,16 +155,30 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
         dataPoints: data
       }
     ];
+    timeChangeListener();
     $chartContainerContent.show();
     chart.render();
   };
   this.drawResults = drawResults;
 
-
   ///////////////////////////////////////////////////////////////////
   //
   // private functions
   //
+  var timeChangeListener = function() {
+    var currentFrame = timelapse.getCurrentFrameNumber();
+    var currentTimeHighlight = new Date(timelapse.getCaptureTimes()[currentFrame]);
+    chart.options.data[1] = {
+      type: "line",
+      cursor: "pointer",
+      markerType: "circle",
+      markerSize: 12,
+      markerBorderColor: "#fff",
+      markerBorderThickness: 2,
+      dataPoints: [{x: currentTimeHighlight, y: data[currentFrame].y}]
+    }
+    chart.render();
+  };
 
   var hideFilterBound = function() {
     if (!isFilterBoundHidden) {
