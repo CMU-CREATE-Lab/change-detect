@@ -161,6 +161,15 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
   };
   this.drawResults = drawResults;
 
+  var hideFilterBound = function() {
+    if (!isFilterBoundHidden) {
+      isFilterBoundHidden = true;
+      clearCanvas();
+      removeFilterHandleEvents();
+    }
+  };
+  this.hideFilterBound = hideFilterBound;
+
   ///////////////////////////////////////////////////////////////////
   //
   // private functions
@@ -178,14 +187,6 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
       dataPoints: [{x: currentTimeHighlight, y: data[currentFrame].y}]
     }
     chart.render();
-  };
-
-  var hideFilterBound = function() {
-    if (!isFilterBoundHidden) {
-      isFilterBoundHidden = true;
-      clearCanvas();
-      removeFilterHandleEvents();
-    }
   };
 
   var showFilterBound = function() {
