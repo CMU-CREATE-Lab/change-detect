@@ -142,7 +142,7 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
           content: "{x}"
         }
       });
-      $chartContainerContent = $("#" + timelapse.getViewerDivId() + " .canvasjs-chart-container");
+      $chartContainerContent = $("#" + timelapse.getViewerDivId() + " .change-detection-chart .canvasjs-chart-container");
       timelapse.addTimeChangeListener(timeChangeListener);
     }
     chart.options.data = [
