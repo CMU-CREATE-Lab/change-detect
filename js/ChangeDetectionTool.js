@@ -124,7 +124,8 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
   var drawResults = function(response) {
     data = [];
     for (var i = 0; i < response.length; i++) {
-      var date = new Date(timelapse.getCaptureTimes()[i]);
+      // If a date string has dashes (i.e. 2015-04-09 08:52:35), replace with slashes since IE/FireFox Date parser does not support this.
+      var date = new Date(timelapse.getCaptureTimes()[i].replace(/-/g, "/"));
       data.push({x: date, y: response[i], frame: i});
     }
     if (!chart) {
