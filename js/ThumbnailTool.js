@@ -48,15 +48,15 @@ var ThumbnailTool = function(timelapse, options) {
   this.centerAndDrawCropBox = centerAndDrawCropBox;
 
   var getURL = function(settings) {
-    var bound = cropBoxToViewBox();
+    var bound = ( typeof (settings["bound"]) == "undefined") ? cropBoxToViewBox() : settings["bound"];
     var config = {
       host: "http://thumbnails.cmucreatelab.org/thumbnail"
     };
     var args = {
       root: timelapse.getSettings().url,
       boundsLTRB: bound.xmin + "," + bound.ymin + "," + bound.xmax + "," + bound.ymax,
-      width: cropBox.xmax - cropBox.xmin,
-      height: cropBox.ymax - cropBox.ymin,
+      width: ( typeof (settings["width"]) == "undefined") ? cropBox.xmax - cropBox.xmin : settings["width"],
+      height: ( typeof (settings["height"]) == "undefined") ? cropBox.ymax - cropBox.ymin : settings["height"],
       frameTime: ( typeof (settings["startTime"]) == "undefined") ? timelapse.getCurrentTime() : settings["startTime"],
       format: ( typeof (settings["format"]) == "undefined") ? "png" : settings["format"],
       fps: ( typeof (settings["fps"]) == "undefined") ? timelapse.getFps() : settings["fps"],
