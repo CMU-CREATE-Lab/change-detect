@@ -73,7 +73,7 @@ var ThumbnailTool = function(timelapse, options) {
         args.nframes = ( typeof (settings["nframes"]) == "undefined") ? 50 : settings["nframes"];
       }
     } else {
-      args.nframes = (settings["endTime"] - args.frameTime) * timelapse.getFps();
+      args.nframes = (settings["endTime"] - args.frameTime) * timelapse.getFps() + 1;
     }
     if ( typeof args.nframes != "undefined") {
       args.nframes = parseInt(Math.round(args.nframes));
