@@ -97,7 +97,12 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
       xhr.onload = function() {
         if (xhr.responseText != "") {
           requestMade = false;
-          callback(xhr.responseText);
+          // Transmission completed
+          var o = JSON.parse(xhr.responseText);
+          drawResults(o.values);
+          if ($chartContainer.hasClass("ajax-loader")) {
+            $chartContainer.removeClass("ajax-loader");
+          }
         }
       };
     } else if (window.XMLHttpRequest) {
