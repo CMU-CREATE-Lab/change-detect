@@ -5,6 +5,7 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
   //
 
   // Variables for the change detection chart
+  var timeMachineDivId = timelapse.getTimeMachineDivId();
   var $viewerDiv = $(timelapse.getViewerDiv());
   var $chartContainer;
   var $chartContainerContent;
@@ -49,16 +50,6 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
   this.enable = enable;
 
   var resizeUI = function() {
-    var viewportHeight = timelapse.getViewportHeight();
-    $chartContainer.css({
-      "position": "absolute",
-      "top": (viewportHeight - 2) + "px",
-      "left": "1px",
-      "right": "1px",
-      "bottom": "",
-      "width": "auto",
-      "height": ""
-    });
   };
   this.resizeUI = resizeUI;
 
@@ -418,7 +409,7 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
   // Create a chart div at the bottom of time machine viewer
   $chartContainer = $("<div id='change-detection-container' class='change-detection-chart empty-chart'></div>");
   $chartContainer.hide();
-  $viewerDiv.append($chartContainer);
+  $("#" + timeMachineDivId).append($chartContainer);
   resizeUI();
 
   // Create a canvas layer for drawing the current marked area for change detection
