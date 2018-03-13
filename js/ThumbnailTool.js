@@ -42,41 +42,65 @@ var ThumbnailTool = function(timelapse, options) {
   this.hideCropBox = hideCropBox;
 
   var centerAndDrawCropBox = function(size) {
+    showCropBox();
     centerCropBox(size);
     drawCropBox();
   };
   this.centerAndDrawCropBox = centerAndDrawCropBox;
 
   var getURL = function(settings) {
+
+    var isWebglViewer = UTIL.getViewerType() == "webgl";
+
     var bound = ( typeof (settings["bound"]) == "undefined") ? cropBoxToViewBox() : settings["bound"];
     var config = {
-      host: "http://thumbnails.cmucreatelab.org/thumbnail"
+      host: isWebglViewer ? "https://thumbnails-staging.cmucreatelab.org/thumbnail" : "http://thumbnails.cmucreatelab.org/thumbnail"
     };
+    var startFrame = settings["startTime"] ? settings["startTime"] * timelapse.getFps() : settings["startFrame"] || 0
+
+    var boundsString = bound.xmin + "," + bound.ymin + "," + bound.xmax + "," + bound.ymax;
+    var desiredView = boundsString + ",pts";
+
+    var shareViewOptions = {};
+    shareViewOptions.bt = settings['bt'];
+    shareViewOptions.et = settings['et'];
+    shareViewOptions.ps = settings['ps'];
+
     var args = {
-      root: timelapse.getSettings().url,
-      boundsLTRB: bound.xmin + "," + bound.ymin + "," + bound.xmax + "," + bound.ymax,
-      width: ( typeof (settings["width"]) == "undefined") ? cropBox.xmax - cropBox.xmin : settings["width"],
-      height: ( typeof (settings["height"]) == "undefined") ? cropBox.ymax - cropBox.ymin : settings["height"],
-      frameTime: ( typeof (settings["startTime"]) == "undefined") ? timelapse.getCurrentTime() : settings["startTime"],
-      format: ( typeof (settings["format"]) == "undefined") ? "png" : settings["format"],
-      fps: ( typeof (settings["fps"]) == "undefined") ? timelapse.getFps() : settings["fps"],
-      tileFormat: timelapse.getMediaType().slice(1)
+      root: isWebglViewer ? "https://headless.earthtime.org/" + encodeURIComponent(timelapse.getShareView(null, desiredView, shareViewOptions)) : timelapse.getSettings().url,
+      boundsLTRB: boundsString,
+      width: (typeof(settings["width"]) == "undefined") ? cropBox.xmax - cropBox.xmin : settings["width"],
+      height: (typeof(settings["height"]) == "undefined") ? cropBox.ymax - cropBox.ymin : settings["height"],
+      startFrame: startFrame,
+      format: (typeof(settings["format"]) == "undefined") ? "png" : settings["format"],
+      fps: (typeof(settings["fps"]) == "undefined") ? timelapse.getFps() : settings["fps"],
+      tileFormat: timelapse.getMediaType().slice(1),
+      startDwell: settings["startDwell"] || 0,
+      endDwell: settings["endDwell"] || 0
     };
 
-    if (settings.embedTime)
-      args.labelsFromDataset = "";
-
-    if ( typeof (settings["endTime"]) == "undefined") {
-      if (args.format == "gif") {
-        args.nframes = ( typeof (settings["nframes"]) == "undefined") ? 10 : settings["nframes"];
-      } else if (args.format == "mp4" || args.format == "webm") {
-        args.nframes = ( typeof (settings["nframes"]) == "undefined") ? 50 : settings["nframes"];
-      }
-    } else {
-      args.nframes = (settings["endTime"] - args.frameTime) * timelapse.getFps() + 1;
+    if (isWebglViewer) {
+      args.fromScreenshot = "";
     }
-    if ( typeof args.nframes != "undefined") {
-      args.nframes = parseInt(Math.round(args.nframes));
+
+    if (settings.smoothPlayback) {
+      args.interpolateBetweenFrames = "";
+    }
+
+    if (settings.embedTime) {
+      if (isWebglViewer) {
+        args.minimalUI = "";
+      } else {
+        args.labelsFromDataset = "";
+      }
+    }
+
+    if (typeof (settings["endTime"]) != "undefined") {
+      args.nframes = parseInt((settings["endTime"] - args.frameTime) * timelapse.getFps() + 1);
+    } else if (typeof (settings["nframes"]) != "undefined") {
+      args.nframes = parseInt(settings["nframes"]);
+    } else {
+      args.nframes = 10;
     }
 
     var t = new ThumbnailServiceAPI(config, args);
@@ -323,5 +347,4 @@ var ThumbnailTool = function(timelapse, options) {
       ymax: undefined
     };
   }
-  centerCropBox("medium");
 };
