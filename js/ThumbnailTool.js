@@ -97,6 +97,10 @@ var ThumbnailTool = function(timelapse, options) {
       }
     }
 
+    if (settings.baseMapsNoLabels) {
+      args.baseMapsNoLabels = "";
+    }
+
     if (typeof (settings["endTime"]) != "undefined") {
       args.nframes = parseInt((settings["endTime"] - args.frameTime) * timelapse.getFps() + 1);
     } else if (typeof (settings["nframes"]) != "undefined") {
