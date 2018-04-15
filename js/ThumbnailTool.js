@@ -65,9 +65,11 @@ var ThumbnailTool = function(timelapse, options) {
     shareViewOptions.bt = settings['bt'];
     shareViewOptions.et = settings['et'];
     shareViewOptions.ps = settings['ps'];
+    shareViewOptions.l = settings['l'];
 
+    var startTime = timelapse.frameNumberToTime(startFrame);
     var args = {
-      root: isWebglViewer ? "https://headless.earthtime.org/" + encodeURIComponent(timelapse.getShareView(null, desiredView, shareViewOptions)) : timelapse.getSettings().url,
+      root: isWebglViewer ? "https://headless.earthtime.org/" + encodeURIComponent(timelapse.getShareView(startTime, desiredView, shareViewOptions)) : timelapse.getSettings().url,
       boundsLTRB: boundsString,
       width: (typeof(settings["width"]) == "undefined") ? cropBox.xmax - cropBox.xmin : settings["width"],
       height: (typeof(settings["height"]) == "undefined") ? cropBox.ymax - cropBox.ymin : settings["height"],
