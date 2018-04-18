@@ -66,6 +66,7 @@ var ThumbnailTool = function(timelapse, options) {
     shareViewOptions.et = settings['et'];
     shareViewOptions.ps = settings['ps'];
     shareViewOptions.l = settings['l'];
+    shareViewOptions.forThumbnail = true;
 
     var startTime = timelapse.frameNumberToTime(startFrame);
     var args = {
