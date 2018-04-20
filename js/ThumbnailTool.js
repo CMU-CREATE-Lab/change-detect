@@ -68,10 +68,12 @@ var ThumbnailTool = function(timelapse, options) {
     shareViewOptions.l = settings['l'];
     shareViewOptions.forThumbnail = true;
 
+    var shareLink = settings['shareView'] ? "#" + settings['shareView'] : timelapse.getShareView(startTime, desiredView, shareViewOptions);
+    var rootUrl = isWebglViewer ? "https://headless.earthtime.org/" + encodeURIComponent(shareLink) : timelapse.getSettings().url;
+
     var startTime = timelapse.frameNumberToTime(startFrame);
     var args = {
-      root: isWebglViewer ? "https://headless.earthtime.org/" + encodeURIComponent(timelapse.getShareView(startTime, desiredView, shareViewOptions)) : timelapse.getSettings().url,
-      boundsLTRB: boundsString,
+      root: rootUrl,
       width: (typeof(settings["width"]) == "undefined") ? cropBox.xmax - cropBox.xmin : settings["width"],
       height: (typeof(settings["height"]) == "undefined") ? cropBox.ymax - cropBox.ymin : settings["height"],
       startFrame: startFrame,
@@ -81,6 +83,10 @@ var ThumbnailTool = function(timelapse, options) {
       startDwell: settings["startDwell"] || 0,
       endDwell: settings["endDwell"] || 0
     };
+
+    if (!settings['shareView']) {
+      args.boundsLTRB = boundsString;
+    }
 
     if (isWebglViewer) {
       args.fromScreenshot = "";
