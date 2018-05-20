@@ -18,6 +18,14 @@ var ThumbnailTool = function(timelapse, options) {
   var boxWidth;
   var boxHeight;
 
+  var prevBoxWidth;
+  var prevBoxHeight;
+
+  var prev_xmin_box;
+  var prev_xmax_box;
+  var prev_ymin_box;
+  var prev_ymax_box;
+
   ///////////////////////////////////////////////////////////////////
   //
   // public functions
@@ -47,6 +55,13 @@ var ThumbnailTool = function(timelapse, options) {
     drawCropBox();
   };
   this.centerAndDrawCropBox = centerAndDrawCropBox;
+
+  var redrawCropBox = function() {
+    showCropBox();
+    setCropBox();
+    drawCropBox();
+  }
+  this.redrawCropBox = redrawCropBox;
 
   var getURL = function(settings) {
 
@@ -166,61 +181,81 @@ var ThumbnailTool = function(timelapse, options) {
     if ( typeof ymax_box == "undefined") {
       ymax_box = cropBox.ymax;
     }
-    // Check if the size is too small
-    var isWidthTooSmall = false;
-    var isHeightTooSmall = false;
-    if (xmax_box - xmin_box < 40) {
-      isWidthTooSmall = true;
-    }
-    if (ymax_box - ymin_box < 40) {
-      isHeightTooSmall = true;
-    }
-    if (!isWidthTooSmall) {
-      cropBox.xmin = xmin_box;
-      cropBox.xmax = xmax_box;
-      /*
-       * 0 1 2
-       * 7 8 3
-       * 6 5 4
-       */
-      cropHandle[0].xmin = xmin_box - cropHandleSize;
-      cropHandle[1].xmin = (xmin_box + xmax_box) / 2.0 - cropHandleHalfSize;
-      cropHandle[2].xmin = xmax_box;
-      cropHandle[3].xmin = xmax_box;
-      cropHandle[4].xmin = xmax_box;
-      cropHandle[5].xmin = cropHandle[1].xmin;
-      cropHandle[6].xmin = cropHandle[0].xmin;
-      cropHandle[7].xmin = cropHandle[0].xmin;
-      cropHandle[8].xmin = cropHandle[1].xmin;
-      for (var i = 0; i < cropHandle.length; i++) {
-        cropHandle[i].xmax = cropHandle[i].xmin + cropHandleSize;
-      }
-    }
-    if (!isHeightTooSmall) {
-      cropBox.ymin = ymin_box;
-      cropBox.ymax = ymax_box;
-      /*
-       * 0 1 2
-       * 7 8 3
-       * 6 5 4
-       */
-      cropHandle[0].ymin = ymin_box - cropHandleSize;
-      cropHandle[1].ymin = cropHandle[0].ymin;
-      cropHandle[2].ymin = cropHandle[0].ymin;
-      cropHandle[3].ymin = (ymin_box + ymax_box) / 2.0 - cropHandleHalfSize;
-      cropHandle[4].ymin = ymax_box;
-      cropHandle[5].ymin = ymax_box;
-      cropHandle[6].ymin = ymax_box;
-      cropHandle[7].ymin = cropHandle[3].ymin;
-      cropHandle[8].ymin = cropHandle[3].ymin;
-      for (var i = 0; i < cropHandle.length; i++) {
-        cropHandle[i].ymax = cropHandle[i].ymin + cropHandleSize;
-      }
-    }
 
     boxWidth = (xmax_box - xmin_box);
     boxHeight = (ymax_box - ymin_box);
 
+    if ($(".force-aspect-ratio").is(":checked")) {
+      var aspectRatio = parseFloat((parseInt($("#thumbnail-width").val()) / parseInt($("#thumbnail-height").val())).toFixed(2));
+      if (!aspectRatio) return;
+      if (boxWidth != prevBoxWidth) {
+        var boxHeightWithAspectRatioPreserved = boxWidth / aspectRatio;
+        var diff = boxHeightWithAspectRatioPreserved - boxHeight;
+        ymax_box += diff;
+      } else if (boxHeight != prevBoxHeight) {
+        var boxWidthWithAspectRatioPreserved = boxHeight * aspectRatio;
+        var diff = boxWidthWithAspectRatioPreserved - boxWidth;
+        xmax_box += diff;
+      }
+
+      boxWidth = (xmax_box - xmin_box);
+      boxHeight = (ymax_box - ymin_box);
+
+      prevBoxWidth = boxWidth;
+      prevBoxHeight = boxHeight;
+
+      prev_xmin_box = xmin_box;
+      prev_xmax_box = xmax_box;
+      prev_ymin_box = ymin_box;
+      prev_ymax_box = ymax_box;
+    } else {
+      prevBoxWidth = null;
+      prevBoxHeight = null;
+    }
+
+    // Set box width
+    cropBox.xmin = xmin_box;
+    cropBox.xmax = xmax_box;
+    /*
+     * 0 1 2
+     * 7 8 3
+     * 6 5 4
+     */
+    cropHandle[0].xmin = xmin_box - cropHandleSize;
+    cropHandle[1].xmin = (xmin_box + xmax_box) / 2.0 - cropHandleHalfSize;
+    cropHandle[2].xmin = xmax_box;
+    cropHandle[3].xmin = xmax_box;
+    cropHandle[4].xmin = xmax_box;
+    cropHandle[5].xmin = cropHandle[1].xmin;
+    cropHandle[6].xmin = cropHandle[0].xmin;
+    cropHandle[7].xmin = cropHandle[0].xmin;
+    cropHandle[8].xmin = cropHandle[1].xmin;
+    for (var i = 0; i < cropHandle.length; i++) {
+      cropHandle[i].xmax = cropHandle[i].xmin + cropHandleSize;
+    }
+    // Set box height
+    cropBox.ymin = ymin_box;
+    cropBox.ymax = ymax_box;
+    /*
+     * 0 1 2
+     * 7 8 3
+     * 6 5 4
+     */
+    cropHandle[0].ymin = ymin_box - cropHandleSize;
+    cropHandle[1].ymin = cropHandle[0].ymin;
+    cropHandle[2].ymin = cropHandle[0].ymin;
+    cropHandle[3].ymin = (ymin_box + ymax_box) / 2.0 - cropHandleHalfSize;
+    cropHandle[4].ymin = ymax_box;
+    cropHandle[5].ymin = ymax_box;
+    cropHandle[6].ymin = ymax_box;
+    cropHandle[7].ymin = cropHandle[3].ymin;
+    cropHandle[8].ymin = cropHandle[3].ymin;
+    for (var i = 0; i < cropHandle.length; i++) {
+      cropHandle[i].ymax = cropHandle[i].ymin + cropHandleSize;
+    }
+
+    boxWidth = (xmax_box - xmin_box);
+    boxHeight = (ymax_box - ymin_box);
   };
 
   var drawCropBox = function() {
