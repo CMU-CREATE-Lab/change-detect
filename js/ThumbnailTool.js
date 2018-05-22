@@ -54,6 +54,8 @@ var ThumbnailTool = function(timelapse, options) {
   this.centerAndDrawCropBox = centerAndDrawCropBox;
 
   var redrawCropBox = function() {
+    prevBoxWidth = null;
+    prevBoxHeight = null;
     showCropBox();
     setCropBox();
     drawCropBox();
