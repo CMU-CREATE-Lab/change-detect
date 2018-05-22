@@ -1,4 +1,5 @@
 // ThumbnailServiceAPI.js
+"use strict";
 
 var ThumbnailServiceAPI = function (config, args) {
   this.host = (config && config.host) ? config.host : "http://thumbnails.cmucreatelab.org/thumbnail";

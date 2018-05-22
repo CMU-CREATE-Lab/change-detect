@@ -1,3 +1,5 @@
+"use strict";
+
 var ThumbnailTool = function(timelapse, options) {
   ///////////////////////////////////////////////////////////////////
   //
@@ -20,11 +22,6 @@ var ThumbnailTool = function(timelapse, options) {
 
   var prevBoxWidth;
   var prevBoxHeight;
-
-  var prev_xmin_box;
-  var prev_xmax_box;
-  var prev_ymin_box;
-  var prev_ymax_box;
 
   ///////////////////////////////////////////////////////////////////
   //
@@ -168,6 +165,11 @@ var ThumbnailTool = function(timelapse, options) {
   //
 
   var setCropBox = function(xmin_box, ymin_box, xmax_box, ymax_box) {
+    var xmin_box_was_defined = typeof(xmin_box) != "undefined";
+    var xmax_box_was_defined = typeof(xmax_box) != "undefined";
+    var ymin_box_was_defined = typeof(ymin_box) != "undefined";
+    var ymax_box_was_defined = typeof(ymax_box) != "undefined";
+
     // If a value is undefined, use the original value
     if ( typeof xmin_box == "undefined") {
       xmin_box = cropBox.xmin;
@@ -188,14 +190,28 @@ var ThumbnailTool = function(timelapse, options) {
     if ($(".force-aspect-ratio").is(":checked")) {
       var aspectRatio = parseFloat((parseInt($("#thumbnail-width").val()) / parseInt($("#thumbnail-height").val())).toFixed(2));
       if (!aspectRatio) return;
-      if (boxWidth != prevBoxWidth) {
-        var boxHeightWithAspectRatioPreserved = boxWidth / aspectRatio;
-        var diff = boxHeightWithAspectRatioPreserved - boxHeight;
-        ymax_box += diff;
+
+      var boxHeightDiff = (boxWidth / aspectRatio) - boxHeight;
+      var boxWidthDiff = (boxHeight * aspectRatio) - boxWidth;
+
+      if (xmax_box_was_defined && ymax_box_was_defined) {
+        xmax_box += boxWidthDiff / 2;
+        ymax_box += boxHeightDiff / 2;
+      } else if (xmin_box_was_defined && ymin_box_was_defined) {
+        xmin_box -= boxWidthDiff / 2;
+        ymin_box -= boxHeightDiff / 2;
+      } else if (xmin_box_was_defined && ymax_box_was_defined) {
+        xmin_box -= boxWidthDiff / 2;
+        ymax_box += boxHeightDiff / 2;
+      } else if (xmax_box_was_defined && ymin_box_was_defined) {
+        xmax_box += boxWidthDiff / 2;
+        ymin_box -= boxHeightDiff / 2;
+      } else if (boxWidth != prevBoxWidth) {
+        ymax_box += boxHeightDiff / 2;
+        ymin_box -= boxHeightDiff / 2;
       } else if (boxHeight != prevBoxHeight) {
-        var boxWidthWithAspectRatioPreserved = boxHeight * aspectRatio;
-        var diff = boxWidthWithAspectRatioPreserved - boxWidth;
-        xmax_box += diff;
+        xmax_box += boxWidthDiff / 2;
+        xmin_box -= boxWidthDiff / 2;
       }
 
       boxWidth = (xmax_box - xmin_box);
@@ -203,59 +219,63 @@ var ThumbnailTool = function(timelapse, options) {
 
       prevBoxWidth = boxWidth;
       prevBoxHeight = boxHeight;
-
-      prev_xmin_box = xmin_box;
-      prev_xmax_box = xmax_box;
-      prev_ymin_box = ymin_box;
-      prev_ymax_box = ymax_box;
     } else {
       prevBoxWidth = null;
       prevBoxHeight = null;
     }
 
-    // Set box width
-    cropBox.xmin = xmin_box;
-    cropBox.xmax = xmax_box;
-    /*
-     * 0 1 2
-     * 7 8 3
-     * 6 5 4
-     */
-    cropHandle[0].xmin = xmin_box - cropHandleSize;
-    cropHandle[1].xmin = (xmin_box + xmax_box) / 2.0 - cropHandleHalfSize;
-    cropHandle[2].xmin = xmax_box;
-    cropHandle[3].xmin = xmax_box;
-    cropHandle[4].xmin = xmax_box;
-    cropHandle[5].xmin = cropHandle[1].xmin;
-    cropHandle[6].xmin = cropHandle[0].xmin;
-    cropHandle[7].xmin = cropHandle[0].xmin;
-    cropHandle[8].xmin = cropHandle[1].xmin;
-    for (var i = 0; i < cropHandle.length; i++) {
-      cropHandle[i].xmax = cropHandle[i].xmin + cropHandleSize;
+    // Check if the size is too small
+    var isWidthTooSmall = false;
+    var isHeightTooSmall = false;
+    if (xmax_box - xmin_box < 10) {
+      isWidthTooSmall = true;
     }
-    // Set box height
-    cropBox.ymin = ymin_box;
-    cropBox.ymax = ymax_box;
-    /*
-     * 0 1 2
-     * 7 8 3
-     * 6 5 4
-     */
-    cropHandle[0].ymin = ymin_box - cropHandleSize;
-    cropHandle[1].ymin = cropHandle[0].ymin;
-    cropHandle[2].ymin = cropHandle[0].ymin;
-    cropHandle[3].ymin = (ymin_box + ymax_box) / 2.0 - cropHandleHalfSize;
-    cropHandle[4].ymin = ymax_box;
-    cropHandle[5].ymin = ymax_box;
-    cropHandle[6].ymin = ymax_box;
-    cropHandle[7].ymin = cropHandle[3].ymin;
-    cropHandle[8].ymin = cropHandle[3].ymin;
-    for (var i = 0; i < cropHandle.length; i++) {
-      cropHandle[i].ymax = cropHandle[i].ymin + cropHandleSize;
+    if (ymax_box - ymin_box < 10) {
+      isHeightTooSmall = true;
     }
-
-    boxWidth = (xmax_box - xmin_box);
-    boxHeight = (ymax_box - ymin_box);
+    if (!isWidthTooSmall) {
+      cropBox.xmin = xmin_box;
+      cropBox.xmax = xmax_box;
+      /*
+       * 0 1 2
+       * 7 8 3
+       * 6 5 4
+       */
+      cropHandle[0].xmin = xmin_box - cropHandleSize;
+      cropHandle[1].xmin = (xmin_box + xmax_box) / 2.0 - cropHandleHalfSize;
+      cropHandle[2].xmin = xmax_box;
+      cropHandle[3].xmin = xmax_box;
+      cropHandle[4].xmin = xmax_box;
+      cropHandle[5].xmin = cropHandle[1].xmin;
+      cropHandle[6].xmin = cropHandle[0].xmin;
+      cropHandle[7].xmin = cropHandle[0].xmin;
+      cropHandle[8].xmin = cropHandle[1].xmin;
+      for (var i = 0; i < cropHandle.length; i++) {
+        cropHandle[i].xmax = cropHandle[i].xmin + cropHandleSize;
+      }
+    }
+    if (!isHeightTooSmall) {
+      // Set box height
+      cropBox.ymin = ymin_box;
+      cropBox.ymax = ymax_box;
+      /*
+       * 0 1 2
+       * 7 8 3
+       * 6 5 4
+       */
+      cropHandle[0].ymin = ymin_box - cropHandleSize;
+      cropHandle[1].ymin = cropHandle[0].ymin;
+      cropHandle[2].ymin = cropHandle[0].ymin;
+      cropHandle[3].ymin = (ymin_box + ymax_box) / 2.0 - cropHandleHalfSize;
+      cropHandle[4].ymin = ymax_box;
+      cropHandle[5].ymin = ymax_box;
+      cropHandle[6].ymin = ymax_box;
+      cropHandle[7].ymin = cropHandle[3].ymin;
+      cropHandle[8].ymin = cropHandle[3].ymin;
+      for (var i = 0; i < cropHandle.length; i++) {
+        cropHandle[i].ymax = cropHandle[i].ymin + cropHandleSize;
+      }
+    }
   };
 
   var drawCropBox = function() {
