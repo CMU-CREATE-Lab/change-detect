@@ -169,6 +169,8 @@ var ThumbnailTool = function(timelapse, options) {
     var xmax_box_was_defined = typeof(xmax_box) != "undefined";
     var ymin_box_was_defined = typeof(ymin_box) != "undefined";
     var ymax_box_was_defined = typeof(ymax_box) != "undefined";
+    var min_box_width = 10;
+    var min_box_height = 10;
 
     // If a value is undefined, use the original value
     if ( typeof xmin_box == "undefined") {
@@ -217,6 +219,10 @@ var ThumbnailTool = function(timelapse, options) {
       boxWidth = (xmax_box - xmin_box);
       boxHeight = (ymax_box - ymin_box);
 
+      if (boxWidth < min_box_width || boxHeight < min_box_height) {
+        return;
+      }
+
       prevBoxWidth = boxWidth;
       prevBoxHeight = boxHeight;
     } else {
@@ -227,10 +233,10 @@ var ThumbnailTool = function(timelapse, options) {
     // Check if the size is too small
     var isWidthTooSmall = false;
     var isHeightTooSmall = false;
-    if (xmax_box - xmin_box < 10) {
+    if (xmax_box - xmin_box < min_box_width) {
       isWidthTooSmall = true;
     }
-    if (ymax_box - ymin_box < 10) {
+    if (ymax_box - ymin_box < min_box_height) {
       isHeightTooSmall = true;
     }
     if (!isWidthTooSmall) {
