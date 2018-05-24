@@ -23,6 +23,8 @@ var ThumbnailTool = function(timelapse, options) {
   var prevBoxWidth;
   var prevBoxHeight;
 
+  var UTIL = org.gigapan.Util;
+
   ///////////////////////////////////////////////////////////////////
   //
   // public functions
@@ -68,7 +70,7 @@ var ThumbnailTool = function(timelapse, options) {
 
     var bound = ( typeof (settings["bound"]) == "undefined") ? cropBoxToViewBox() : settings["bound"];
     var config = {
-      host: isWebglViewer ? "https://thumbnails-earthtime.cmucreatelab.org/thumbnail" : "http://thumbnails.cmucreatelab.org/thumbnail"
+      host: isWebglViewer ? "https://thumbnails-earthtime.cmucreatelab.org/thumbnail" : "http://thumbnails-staging.cmucreatelab.org/thumbnail"
     };
     var startFrame = settings["startTime"] ? settings["startTime"] * timelapse.getFps() : settings["startFrame"] || 0
 
