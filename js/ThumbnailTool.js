@@ -66,11 +66,11 @@ var ThumbnailTool = function(timelapse, options) {
 
   var getURL = function(settings) {
 
-    var isWebglViewer = UTIL.getViewerType() == "webgl";
+    var isEarthTime = typeof(EARTH_TIMELAPSE_CONFIG) !== "undefined";
 
     var bound = ( typeof (settings["bound"]) == "undefined") ? cropBoxToViewBox() : settings["bound"];
     var config = {
-      host: isWebglViewer ? "https://thumbnails-earthtime.cmucreatelab.org/thumbnail" : "https://thumbnails-staging.cmucreatelab.org/thumbnail"
+      host: isEarthTime ? "https://thumbnails-earthtime.cmucreatelab.org/thumbnail" : "https://thumbnails-v2.createlab.org/thumbnail"
     };
     var startFrame = settings["startTime"] ? settings["startTime"] * timelapse.getFps() : settings["startFrame"] || 0
 
@@ -85,7 +85,7 @@ var ThumbnailTool = function(timelapse, options) {
     shareViewOptions.forThumbnail = true;
 
     var shareLink = settings['shareView'] ? "#" + settings['shareView'] : timelapse.getShareView(startTime, desiredView, shareViewOptions);
-    var rootUrl = isWebglViewer ? "https://headless.earthtime.org/" + encodeURIComponent(shareLink) : timelapse.getSettings().url;
+    var rootUrl = isEarthTime ? "https://headless.earthtime.org/" + encodeURIComponent(shareLink) : timelapse.getSettings().url;
 
     var startTime = timelapse.frameNumberToTime(startFrame);
     var args = {
@@ -104,7 +104,7 @@ var ThumbnailTool = function(timelapse, options) {
       args.boundsLTRB = boundsString;
     }
 
-    if (isWebglViewer) {
+    if (isEarthTime) {
       args.fromScreenshot = "";
     }
 
@@ -113,7 +113,7 @@ var ThumbnailTool = function(timelapse, options) {
     }
 
     if (settings.embedTime) {
-      if (isWebglViewer) {
+      if (isEarthTime) {
         args.minimalUI = "";
       } else {
         args.labelsFromDataset = "";
