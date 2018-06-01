@@ -33,6 +33,11 @@ var ThumbnailTool = function(timelapse, options) {
   var showCropBox = function() {
     if (isCropBoxHidden) {
       isCropBoxHidden = false;
+      if (typeof(cropBox.xmin) == "undefined") {
+        centerCropBox();
+      } else {
+        setCropBox();
+      }
       drawCropBox();
       addCropHandleEvents();
     }
@@ -48,9 +53,9 @@ var ThumbnailTool = function(timelapse, options) {
   };
   this.hideCropBox = hideCropBox;
 
-  var centerAndDrawCropBox = function(size) {
+  var centerAndDrawCropBox = function() {
     showCropBox();
-    centerCropBox(size);
+    centerCropBox();
     drawCropBox();
   };
   this.centerAndDrawCropBox = centerAndDrawCropBox;
@@ -65,7 +70,6 @@ var ThumbnailTool = function(timelapse, options) {
   this.redrawCropBox = redrawCropBox;
 
   var getURL = function(settings) {
-
     var isEarthTime = typeof(EARTH_TIMELAPSE_CONFIG) !== "undefined";
 
     var bound = ( typeof (settings["bound"]) == "undefined") ? cropBoxToViewBox() : settings["bound"];
@@ -193,46 +197,41 @@ var ThumbnailTool = function(timelapse, options) {
     boxWidth = (xmax_box - xmin_box);
     boxHeight = (ymax_box - ymin_box);
 
-    if ($(".force-aspect-ratio").is(":checked")) {
-      var aspectRatio = parseFloat((parseInt($("#thumbnail-width").val()) / parseInt($("#thumbnail-height").val())).toFixed(2));
-      if (!aspectRatio) return;
+    var aspectRatio = parseFloat((parseInt($("#thumbnail-width").val()) / parseInt($("#thumbnail-height").val())).toFixed(2));
+    if (!aspectRatio) return;
 
-      var boxHeightDiff = (boxWidth / aspectRatio) - boxHeight;
-      var boxWidthDiff = (boxHeight * aspectRatio) - boxWidth;
+    var boxHeightDiff = (boxWidth / aspectRatio) - boxHeight;
+    var boxWidthDiff = (boxHeight * aspectRatio) - boxWidth;
 
-      if (xmax_box_was_defined && ymax_box_was_defined) {
-        xmax_box += boxWidthDiff / 2;
-        ymax_box += boxHeightDiff / 2;
-      } else if (xmin_box_was_defined && ymin_box_was_defined) {
-        xmin_box -= boxWidthDiff / 2;
-        ymin_box -= boxHeightDiff / 2;
-      } else if (xmin_box_was_defined && ymax_box_was_defined) {
-        xmin_box -= boxWidthDiff / 2;
-        ymax_box += boxHeightDiff / 2;
-      } else if (xmax_box_was_defined && ymin_box_was_defined) {
-        xmax_box += boxWidthDiff / 2;
-        ymin_box -= boxHeightDiff / 2;
-      } else if (boxWidth != prevBoxWidth) {
-        ymax_box += boxHeightDiff / 2;
-        ymin_box -= boxHeightDiff / 2;
-      } else if (boxHeight != prevBoxHeight) {
-        xmax_box += boxWidthDiff / 2;
-        xmin_box -= boxWidthDiff / 2;
-      }
-
-      boxWidth = (xmax_box - xmin_box);
-      boxHeight = (ymax_box - ymin_box);
-
-      if (boxWidth < min_box_width || boxHeight < min_box_height) {
-        return;
-      }
-
-      prevBoxWidth = boxWidth;
-      prevBoxHeight = boxHeight;
-    } else {
-      prevBoxWidth = null;
-      prevBoxHeight = null;
+    if (xmax_box_was_defined && ymax_box_was_defined && prevBoxHeight != null) {
+      xmax_box += boxWidthDiff / 2;
+      ymax_box += boxHeightDiff / 2;
+    } else if (xmin_box_was_defined && ymin_box_was_defined && prevBoxHeight != null) {
+      xmin_box -= boxWidthDiff / 2;
+      ymin_box -= boxHeightDiff / 2;
+    } else if (xmin_box_was_defined && ymax_box_was_defined && prevBoxHeight != null) {
+      xmin_box -= boxWidthDiff / 2;
+      ymax_box += boxHeightDiff / 2;
+    } else if (xmax_box_was_defined && ymin_box_was_defined && prevBoxHeight != null) {
+      xmax_box += boxWidthDiff / 2;
+      ymin_box -= boxHeightDiff / 2;
+    } else if (boxWidth != prevBoxWidth) {
+      ymax_box += boxHeightDiff / 2;
+      ymin_box -= boxHeightDiff / 2;
+    } else if (boxHeight != prevBoxHeight) {
+      xmax_box += boxWidthDiff / 2;
+      xmin_box -= boxWidthDiff / 2;
     }
+
+    boxWidth = (xmax_box - xmin_box);
+    boxHeight = (ymax_box - ymin_box);
+
+    if (boxWidth < min_box_width || boxHeight < min_box_height) {
+      return;
+    }
+
+    prevBoxWidth = boxWidth;
+    prevBoxHeight = boxHeight;
 
     // Check if the size is too small
     var isWidthTooSmall = false;
@@ -326,21 +325,9 @@ var ThumbnailTool = function(timelapse, options) {
     ctx.clearRect(0, 0, canvasLayer.canvas.width, canvasLayer.canvas.height);
   };
 
-  var centerCropBox = function(size) {
-    var heightRatio;
-    if (size == "large") {
-      heightRatio = 0.35;
-    } else if (size == "medium") {
-      heightRatio = 0.2;
-    } else if (size == "small") {
-      heightRatio = 0.1;
-    } else {
-      heightRatio = 0.35;
-    }
-    var canvasHalfHeight = canvasLayer.canvas.height * heightRatio;
-    var centerX = canvasLayer.canvas.width / 2.0;
-    var centerY = canvasLayer.canvas.height / 2.0 - canvasLayer.canvas.height * 0.05;
-    setCropBox(centerX - canvasHalfHeight, centerY - canvasHalfHeight, centerX + canvasHalfHeight, centerY + canvasHalfHeight);
+  var centerCropBox = function() {
+    var cropHandleSizeAndExtraPadding = cropHandleSize + 4;
+    setCropBox(cropHandleSizeAndExtraPadding, cropHandleSizeAndExtraPadding, canvasLayer.canvas.width - cropHandleSizeAndExtraPadding, canvasLayer.canvas.height - cropHandleSizeAndExtraPadding);
   };
 
   var mousemoveListener = function(event) {
@@ -402,9 +389,10 @@ var ThumbnailTool = function(timelapse, options) {
     animate: false,
     id: "thumbnailTool",
     resizeHandler: function() {
-      centerCropBox("medium");
       if (!isCropBoxHidden) {
-        drawCropBox();
+        prevBoxWidth = null;
+        prevBoxHeight = null;
+        centerAndDrawCropBox();
       }
     }
   });
