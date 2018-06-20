@@ -30,6 +30,11 @@ var ThumbnailTool = function(timelapse, options) {
   // public functions
   //
 
+  var resizeCanvas = function() {
+    canvasLayer.resize_();
+  };
+  this.resizeCanvas = resizeCanvas;
+
   var showCropBox = function() {
     if (isCropBoxHidden) {
       canvasLayer.resize_();
