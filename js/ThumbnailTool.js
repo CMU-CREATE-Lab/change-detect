@@ -32,6 +32,7 @@ var ThumbnailTool = function(timelapse, options) {
 
   var showCropBox = function() {
     if (isCropBoxHidden) {
+      canvasLayer.resize_();
       isCropBoxHidden = false;
       if (typeof(cropBox.xmin) == "undefined") {
         centerCropBox();
@@ -326,7 +327,7 @@ var ThumbnailTool = function(timelapse, options) {
   };
 
   var centerCropBox = function() {
-    var cropHandleSizeAndExtraPadding = cropHandleSize + 4;
+    var cropHandleSizeAndExtraPadding = cropHandleSize + 200;
     setCropBox(cropHandleSizeAndExtraPadding, cropHandleSizeAndExtraPadding, canvasLayer.canvas.width - cropHandleSizeAndExtraPadding, canvasLayer.canvas.height - cropHandleSizeAndExtraPadding);
   };
 
