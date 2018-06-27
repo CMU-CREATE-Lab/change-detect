@@ -110,12 +110,10 @@ var ThumbnailTool = function(timelapse, options) {
       endDwell: settings["endDwell"] || 0
     };
 
-    if (!settings['shareView']) {
-      args.boundsLTRB = boundsString;
-    }
-
     if (isEarthTime) {
       args.fromScreenshot = "";
+    } else {
+      args.boundsLTRB = boundsString;
     }
 
     if (settings.smoothPlayback) {
