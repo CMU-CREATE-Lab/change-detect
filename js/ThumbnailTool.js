@@ -22,6 +22,7 @@ var ThumbnailTool = function (timelapse, options) {
   var prevBoxWidth;
   var prevBoxHeight;
   var UTIL = org.gigapan.Util;
+  var aspectRatio;
 
   var DEFAULT_BOX_PADDING = {
     top: 100,
@@ -60,6 +61,7 @@ var ThumbnailTool = function (timelapse, options) {
       isCropBoxHidden = true;
       clearCanvas();
       removeCropHandleEvents();
+      clearAspectRatio();
     }
   };
   this.hideCropBox = hideCropBox;
@@ -77,8 +79,18 @@ var ThumbnailTool = function (timelapse, options) {
     showCropBox();
     setCropBox();
     drawCropBox();
-  }
+  };
   this.redrawCropBox = redrawCropBox;
+
+  var forceAspectRatio = function (w, h) {
+    aspectRatio = (parseFloat(w) / parseFloat(h)).toFixed(2);
+  };
+  this.forceAspectRatio = forceAspectRatio;
+
+  var clearAspectRatio = function (r) {
+    aspectRatio = undefined;
+  };
+  this.clearAspectRatio = clearAspectRatio;
 
   var getURL = function (settings) {
     var isEarthTime = typeof(EARTH_TIMELAPSE_CONFIG) !== "undefined";
@@ -206,8 +218,6 @@ var ThumbnailTool = function (timelapse, options) {
     boxWidth = (xmax_box - xmin_box);
     boxHeight = (ymax_box - ymin_box);
 
-    // TODO: need to have a function to set the aspect ratio
-    var aspectRatio = parseFloat((parseInt($("#thumbnail-width").val()) / parseInt($("#thumbnail-height").val())).toFixed(2));
     if (aspectRatio) {
       var boxHeightDiff = (boxWidth / aspectRatio) - boxHeight;
       var boxWidthDiff = (boxHeight * aspectRatio) - boxWidth;
