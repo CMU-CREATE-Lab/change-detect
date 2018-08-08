@@ -414,7 +414,7 @@ var ThumbnailTool = function (timelapse, options) {
   canvasLayer = new TimeMachineCanvasLayer({
     timelapse: timelapse,
     animate: false,
-    id: "thumbnailTool"
+    id: "thumbnailTool",
     resizeHandler: function () {
       if (!isCropBoxHidden) {
         centerAndDrawCropBox();
