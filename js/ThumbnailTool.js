@@ -30,6 +30,10 @@ var ThumbnailTool = function (timelapse, options) {
     left: 100,
     right: 100
   };
+  var MIN_BOX_SIZE = {
+    width: 50,
+    height: 50
+  };
 
   ///////////////////////////////////////////////////////////////////
   //
@@ -67,7 +71,8 @@ var ThumbnailTool = function (timelapse, options) {
   this.hideCropBox = hideCropBox;
 
   var centerAndDrawCropBox = function () {
-    showCropBox();
+    prevBoxWidth = null;
+    prevBoxHeight = null;
     centerCropBox();
     drawCropBox();
   };
@@ -76,7 +81,6 @@ var ThumbnailTool = function (timelapse, options) {
   var redrawCropBox = function () {
     prevBoxWidth = null;
     prevBoxHeight = null;
-    showCropBox();
     setCropBox();
     drawCropBox();
   };
@@ -188,6 +192,20 @@ var ThumbnailTool = function (timelapse, options) {
   };
   this.getBoxSize = getBoxSize;
 
+  var addCropHandleEvents = function () {
+    $dataPanesContainer.on("mousedown", mousedownListener);
+    $(document).on("mouseup", mouseupListener);
+    $dataPanesContainer.on("mousemove", mousemoveListener);
+  };
+  this.addCropHandleEvents = addCropHandleEvents;
+
+  var removeCropHandleEvents = function () {
+    $dataPanesContainer.off("mousedown", mousedownListener);
+    $(document).off("mouseup", mouseupListener);
+    $dataPanesContainer.off("mousemove", mousemoveListener);
+  };
+  this.removeCropHandleEvents = removeCropHandleEvents;
+
   ///////////////////////////////////////////////////////////////////
   //
   // private functions
@@ -198,8 +216,8 @@ var ThumbnailTool = function (timelapse, options) {
     var xmax_box_was_defined = typeof(xmax_box) != "undefined";
     var ymin_box_was_defined = typeof(ymin_box) != "undefined";
     var ymax_box_was_defined = typeof(ymax_box) != "undefined";
-    var min_box_width = 10;
-    var min_box_height = 10;
+    var min_box_width = MIN_BOX_SIZE.width;
+    var min_box_height = MIN_BOX_SIZE.height;
 
     // If a value is undefined, use the original value
     if (typeof xmin_box == "undefined") {
@@ -363,18 +381,6 @@ var ThumbnailTool = function (timelapse, options) {
     boxEventHandler.mousedownHandler(event);
   };
 
-  var addCropHandleEvents = function () {
-    $dataPanesContainer.on("mousedown", mousedownListener);
-    $(document).on("mouseup", mouseupListener);
-    $dataPanesContainer.on("mousemove", mousemoveListener);
-  };
-
-  var removeCropHandleEvents = function () {
-    $dataPanesContainer.off("mousedown", mousedownListener);
-    $(document).off("mouseup", mouseupListener);
-    $dataPanesContainer.off("mousemove", mousemoveListener);
-  };
-
   var resizeCropBox = function (index, x, y) {
     if (index == 0) {
       setAndDrawCropBox(x, y, undefined, undefined);
@@ -408,11 +414,9 @@ var ThumbnailTool = function (timelapse, options) {
   canvasLayer = new TimeMachineCanvasLayer({
     timelapse: timelapse,
     animate: false,
-    id: "thumbnailTool",
+    id: "thumbnailTool"
     resizeHandler: function () {
       if (!isCropBoxHidden) {
-        prevBoxWidth = null;
-        prevBoxHeight = null;
         centerAndDrawCropBox();
       }
     }
