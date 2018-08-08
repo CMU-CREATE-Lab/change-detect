@@ -44,7 +44,6 @@ org.gigapan.timelapse.OverlayView.prototype.getTimelapse = function() {
  * @param {CanvasLayerOptions=} opt_options Options to set in this CanvasLayer.
  */
 function TimeMachineCanvasLayer(opt_options) {
-
   /**
    * If true, canvas is in a map pane and the OverlayView is fully functional.
    * See google.maps.OverlayView.onAdd for more information.

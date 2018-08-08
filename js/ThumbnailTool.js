@@ -19,11 +19,16 @@ var ThumbnailTool = function(timelapse, options) {
   var boxEventHandler = new BoxEventHandler(timelapse);
   var boxWidth;
   var boxHeight;
-
   var prevBoxWidth;
   var prevBoxHeight;
-
   var UTIL = org.gigapan.Util;
+
+  var DEFAULT_BOX_PADDING = {
+    top: 100,
+    bottom: 150,
+    left: 100,
+    right: 100
+  };
 
   ///////////////////////////////////////////////////////////////////
   //
@@ -201,34 +206,33 @@ var ThumbnailTool = function(timelapse, options) {
     boxWidth = (xmax_box - xmin_box);
     boxHeight = (ymax_box - ymin_box);
 
+    // TODO: need to have a function to set the aspect ratio
     var aspectRatio = parseFloat((parseInt($("#thumbnail-width").val()) / parseInt($("#thumbnail-height").val())).toFixed(2));
-    if (!aspectRatio) return;
-
-    var boxHeightDiff = (boxWidth / aspectRatio) - boxHeight;
-    var boxWidthDiff = (boxHeight * aspectRatio) - boxWidth;
-
-    if (xmax_box_was_defined && ymax_box_was_defined && prevBoxHeight != null) {
-      xmax_box += boxWidthDiff / 2;
-      ymax_box += boxHeightDiff / 2;
-    } else if (xmin_box_was_defined && ymin_box_was_defined && prevBoxHeight != null) {
-      xmin_box -= boxWidthDiff / 2;
-      ymin_box -= boxHeightDiff / 2;
-    } else if (xmin_box_was_defined && ymax_box_was_defined && prevBoxHeight != null) {
-      xmin_box -= boxWidthDiff / 2;
-      ymax_box += boxHeightDiff / 2;
-    } else if (xmax_box_was_defined && ymin_box_was_defined && prevBoxHeight != null) {
-      xmax_box += boxWidthDiff / 2;
-      ymin_box -= boxHeightDiff / 2;
-    } else if (boxWidth != prevBoxWidth) {
-      ymax_box += boxHeightDiff / 2;
-      ymin_box -= boxHeightDiff / 2;
-    } else if (boxHeight != prevBoxHeight) {
-      xmax_box += boxWidthDiff / 2;
-      xmin_box -= boxWidthDiff / 2;
+    if (aspectRatio) {
+      var boxHeightDiff = (boxWidth / aspectRatio) - boxHeight;
+      var boxWidthDiff = (boxHeight * aspectRatio) - boxWidth;
+      if (xmax_box_was_defined && ymax_box_was_defined && prevBoxHeight != null) {
+        xmax_box += boxWidthDiff / 2;
+        ymax_box += boxHeightDiff / 2;
+      } else if (xmin_box_was_defined && ymin_box_was_defined && prevBoxHeight != null) {
+        xmin_box -= boxWidthDiff / 2;
+        ymin_box -= boxHeightDiff / 2;
+      } else if (xmin_box_was_defined && ymax_box_was_defined && prevBoxHeight != null) {
+        xmin_box -= boxWidthDiff / 2;
+        ymax_box += boxHeightDiff / 2;
+      } else if (xmax_box_was_defined && ymin_box_was_defined && prevBoxHeight != null) {
+        xmax_box += boxWidthDiff / 2;
+        ymin_box -= boxHeightDiff / 2;
+      } else if (boxWidth != prevBoxWidth) {
+        ymax_box += boxHeightDiff / 2;
+        ymin_box -= boxHeightDiff / 2;
+      } else if (boxHeight != prevBoxHeight) {
+        xmax_box += boxWidthDiff / 2;
+        xmin_box -= boxWidthDiff / 2;
+      }
+      boxWidth = (xmax_box - xmin_box);
+      boxHeight = (ymax_box - ymin_box);
     }
-
-    boxWidth = (xmax_box - xmin_box);
-    boxHeight = (ymax_box - ymin_box);
 
     if (boxWidth < min_box_width || boxHeight < min_box_height) {
       return;
@@ -330,8 +334,11 @@ var ThumbnailTool = function(timelapse, options) {
   };
 
   var centerCropBox = function() {
-    var cropHandleSizeAndExtraPadding = cropHandleSize + 200;
-    setCropBox(cropHandleSizeAndExtraPadding, cropHandleSizeAndExtraPadding, canvasLayer.canvas.width - cropHandleSizeAndExtraPadding, canvasLayer.canvas.height - cropHandleSizeAndExtraPadding);
+    var t = cropHandleSize + DEFAULT_BOX_PADDING.top;
+    var b = cropHandleSize + DEFAULT_BOX_PADDING.bottom;
+    var l = cropHandleSize + DEFAULT_BOX_PADDING.left;
+    var r = cropHandleSize + DEFAULT_BOX_PADDING.right;
+    setCropBox(l, t, canvasLayer.canvas.width - r, canvasLayer.canvas.height - b);
   };
 
   var mousemoveListener = function(event) {
