@@ -1,6 +1,6 @@
 "use strict";
 
-var ThumbnailTool = function(timelapse, options) {
+var ThumbnailTool = function (timelapse, options) {
   ///////////////////////////////////////////////////////////////////
   //
   // variables
@@ -35,12 +35,12 @@ var ThumbnailTool = function(timelapse, options) {
   // public functions
   //
 
-  var resizeCanvas = function() {
+  var resizeCanvas = function () {
     canvasLayer.resize_();
   };
   this.resizeCanvas = resizeCanvas;
 
-  var showCropBox = function() {
+  var showCropBox = function () {
     if (isCropBoxHidden) {
       canvasLayer.resize_();
       isCropBoxHidden = false;
@@ -55,7 +55,7 @@ var ThumbnailTool = function(timelapse, options) {
   };
   this.showCropBox = showCropBox;
 
-  var hideCropBox = function() {
+  var hideCropBox = function () {
     if (!isCropBoxHidden) {
       isCropBoxHidden = true;
       clearCanvas();
@@ -64,14 +64,14 @@ var ThumbnailTool = function(timelapse, options) {
   };
   this.hideCropBox = hideCropBox;
 
-  var centerAndDrawCropBox = function() {
+  var centerAndDrawCropBox = function () {
     showCropBox();
     centerCropBox();
     drawCropBox();
   };
   this.centerAndDrawCropBox = centerAndDrawCropBox;
 
-  var redrawCropBox = function() {
+  var redrawCropBox = function () {
     prevBoxWidth = null;
     prevBoxHeight = null;
     showCropBox();
@@ -80,10 +80,10 @@ var ThumbnailTool = function(timelapse, options) {
   }
   this.redrawCropBox = redrawCropBox;
 
-  var getURL = function(settings) {
+  var getURL = function (settings) {
     var isEarthTime = typeof(EARTH_TIMELAPSE_CONFIG) !== "undefined";
 
-    var bound = ( typeof (settings["bound"]) == "undefined") ? cropBoxToViewBox() : settings["bound"];
+    var bound = (typeof (settings["bound"]) == "undefined") ? cropBoxToViewBox() : settings["bound"];
     var config = {
       host: isEarthTime ? "https://thumbnails-earthtime.cmucreatelab.org/thumbnail" : "https://thumbnails-v2.createlab.org/thumbnail"
     };
@@ -153,7 +153,7 @@ var ThumbnailTool = function(timelapse, options) {
   };
   this.getURL = getURL;
 
-  var cropBoxToViewBox = function() {
+  var cropBoxToViewBox = function () {
     var topLeftPt = timelapse.convertViewportToTimeMachine({
       x: cropBox.xmin,
       y: cropBox.ymin
@@ -171,7 +171,7 @@ var ThumbnailTool = function(timelapse, options) {
   };
   this.cropBoxToViewBox = cropBoxToViewBox;
 
-  var getBoxSize = function() {
+  var getBoxSize = function () {
     return Math.round(boxWidth) + "x" + Math.round(boxHeight);
   };
   this.getBoxSize = getBoxSize;
@@ -181,7 +181,7 @@ var ThumbnailTool = function(timelapse, options) {
   // private functions
   //
 
-  var setCropBox = function(xmin_box, ymin_box, xmax_box, ymax_box) {
+  var setCropBox = function (xmin_box, ymin_box, xmax_box, ymax_box) {
     var xmin_box_was_defined = typeof(xmin_box) != "undefined";
     var xmax_box_was_defined = typeof(xmax_box) != "undefined";
     var ymin_box_was_defined = typeof(ymin_box) != "undefined";
@@ -190,16 +190,16 @@ var ThumbnailTool = function(timelapse, options) {
     var min_box_height = 10;
 
     // If a value is undefined, use the original value
-    if ( typeof xmin_box == "undefined") {
+    if (typeof xmin_box == "undefined") {
       xmin_box = cropBox.xmin;
     }
-    if ( typeof xmax_box == "undefined") {
+    if (typeof xmax_box == "undefined") {
       xmax_box = cropBox.xmax;
     }
-    if ( typeof ymin_box == "undefined") {
+    if (typeof ymin_box == "undefined") {
       ymin_box = cropBox.ymin;
     }
-    if ( typeof ymax_box == "undefined") {
+    if (typeof ymax_box == "undefined") {
       ymax_box = cropBox.ymax;
     }
 
@@ -295,7 +295,7 @@ var ThumbnailTool = function(timelapse, options) {
     }
   };
 
-  var drawCropBox = function() {
+  var drawCropBox = function () {
     clearCanvas();
     ctx.beginPath();
     // Draw the mask
@@ -324,16 +324,16 @@ var ThumbnailTool = function(timelapse, options) {
     }
   };
 
-  var setAndDrawCropBox = function(xmin_box, ymin_box, xmax_box, ymax_box) {
+  var setAndDrawCropBox = function (xmin_box, ymin_box, xmax_box, ymax_box) {
     setCropBox(xmin_box, ymin_box, xmax_box, ymax_box);
     drawCropBox();
   };
 
-  var clearCanvas = function() {
+  var clearCanvas = function () {
     ctx.clearRect(0, 0, canvasLayer.canvas.width, canvasLayer.canvas.height);
   };
 
-  var centerCropBox = function() {
+  var centerCropBox = function () {
     var t = cropHandleSize + DEFAULT_BOX_PADDING.top;
     var b = cropHandleSize + DEFAULT_BOX_PADDING.bottom;
     var l = cropHandleSize + DEFAULT_BOX_PADDING.left;
@@ -341,31 +341,31 @@ var ThumbnailTool = function(timelapse, options) {
     setCropBox(l, t, canvasLayer.canvas.width - r, canvasLayer.canvas.height - b);
   };
 
-  var mousemoveListener = function(event) {
+  var mousemoveListener = function (event) {
     boxEventHandler.mousemoveHandler(event, cropHandle, cropBox, resizeCropBox);
   };
 
-  var mouseupListener = function(event) {
+  var mouseupListener = function (event) {
     boxEventHandler.mouseupHandler(event);
   };
 
-  var mousedownListener = function(event) {
+  var mousedownListener = function (event) {
     boxEventHandler.mousedownHandler(event);
   };
 
-  var addCropHandleEvents = function() {
+  var addCropHandleEvents = function () {
     $dataPanesContainer.on("mousedown", mousedownListener);
     $(document).on("mouseup", mouseupListener);
     $dataPanesContainer.on("mousemove", mousemoveListener);
   };
 
-  var removeCropHandleEvents = function() {
+  var removeCropHandleEvents = function () {
     $dataPanesContainer.off("mousedown", mousedownListener);
     $(document).off("mouseup", mouseupListener);
     $dataPanesContainer.off("mousemove", mousemoveListener);
   };
 
-  var resizeCropBox = function(index, x, y) {
+  var resizeCropBox = function (index, x, y) {
     if (index == 0) {
       setAndDrawCropBox(x, y, undefined, undefined);
     } else if (index == 1) {
@@ -399,7 +399,7 @@ var ThumbnailTool = function(timelapse, options) {
     timelapse: timelapse,
     animate: false,
     id: "thumbnailTool",
-    resizeHandler: function() {
+    resizeHandler: function () {
       if (!isCropBoxHidden) {
         prevBoxWidth = null;
         prevBoxHeight = null;
