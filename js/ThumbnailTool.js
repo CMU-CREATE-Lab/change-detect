@@ -87,9 +87,28 @@ var ThumbnailTool = function (timelapse, options) {
   this.redrawCropBox = redrawCropBox;
 
   var forceAspectRatio = function (w, h) {
-    aspectRatio = (parseFloat(w) / parseFloat(h)).toFixed(2);
+    aspectRatio = (parseFloat(w) / parseFloat(h)).toFixed(6);
   };
   this.forceAspectRatio = forceAspectRatio;
+
+  var swapBoxWidthHeight = function () {
+    var center = getBoxCenter();
+    var w_half = Math.abs((cropBox.xmax - cropBox.xmin) / 2);
+    var h_half = Math.abs((cropBox.ymax - cropBox.ymin) / 2);
+    var r_tmp = aspectRatio;
+    if (typeof r_tmp !== "undefined") clearAspectRatio();
+    setAndDrawCropBox(center.x - h_half, center.y - w_half, center.x + h_half, center.y + w_half)
+    if (typeof r_tmp !== "undefined") aspectRatio = (1 / r_tmp).toFixed(6);
+  };
+  this.swapBoxWidthHeight = swapBoxWidthHeight;
+
+  var getBoxCenter = function () {
+    return {
+      x: (cropBox.xmax + cropBox.xmin) / 2,
+      y: (cropBox.ymax + cropBox.ymin) / 2
+    }
+  };
+  this.getBoxCenter = getBoxCenter;
 
   var clearAspectRatio = function (r) {
     aspectRatio = undefined;
