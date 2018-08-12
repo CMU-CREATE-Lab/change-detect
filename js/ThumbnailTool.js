@@ -116,6 +116,7 @@ var ThumbnailTool = function (timelapse, options) {
   this.clearAspectRatio = clearAspectRatio;
 
   var getURL = function (settings) {
+    if (typeof settings === "undefined") settings = {};
     var isEarthTime = typeof(EARTH_TIMELAPSE_CONFIG) !== "undefined";
 
     var bound = (typeof (settings["bound"]) == "undefined") ? cropBoxToViewBox() : settings["bound"];
