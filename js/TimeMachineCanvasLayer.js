@@ -67,6 +67,13 @@ function TimeMachineCanvasLayer(opt_options) {
   this.paneName_ = (opt_options.id !== undefined) ? opt_options.id : TimeMachineCanvasLayer.DEFAULT_PANE_NAME_;
 
   /**
+   * The z-index of the MapPane in which this layer will be ordered.
+   * @type {string}
+   * @private
+   */
+  this.paneZindex_ = (opt_options.paneZindex !== undefined) ? opt_options.paneZindex : TimeMachineCanvasLayer.DEFAULT_Z_INDEX_;
+
+  /**
    * A user-supplied function called whenever an update is required. Null or
    * undefined if a callback is not provided.
    * @type {?function=}
@@ -135,6 +142,13 @@ function TimeMachineCanvasLayer(opt_options) {
   this.canvas = canvas;
 
   /**
+  * A value for scaling the CanvasLayer resolution relative to the CanvasLayer
+  * display size.
+  * @private {number}
+  */
+  this.resolutionScale_ = 1;
+
+  /**
    * Simple bind for functions with no args for bind-less browsers (Safari).
    * @param {Object} thisArg The this value used for the target function.
    * @param {function} func The function to be bound.
@@ -181,6 +195,8 @@ TimeMachineCanvasLayer.prototype = new org.gigapan.timelapse.OverlayView();
  * @private
  */
 TimeMachineCanvasLayer.DEFAULT_PANE_NAME_ = 'overlayLayer';
+
+TimeMachineCanvasLayer.DEFAULT_Z_INDEX_ = '10';
 
 /**
  * Transform CSS property name, with vendor prefix if required. If browser
@@ -253,6 +269,10 @@ TimeMachineCanvasLayer.prototype.setOptions = function(options) {
   if (options.timelapse !== undefined) {
     this.setTimelapse(options.timelapse);
   }
+
+  if (options.resolutionScale !== undefined) {
+    this.setResolutionScale(options.resolutionScale);
+  }
 };
 
 /**
@@ -319,11 +339,11 @@ TimeMachineCanvasLayer.prototype.setPane_ = function() {
   div.style.position = 'absolute';
   div.style.top = 0;
   div.style.left = 0;
-  div.style.zIndex = 10;
+  div.style.zIndex = this.paneZindex_;
   div.style.width = "100%";
   div.appendChild(this.canvas);
 
-  var timelapse = this.getTimelapse();
+  var timelapse = this.timelapse;
   var parent = document.getElementById(timelapse.getDataPanesContainerId());
   parent.insertBefore(div, parent.children[0]);
 };
@@ -336,6 +356,20 @@ TimeMachineCanvasLayer.prototype.setPane_ = function() {
  */
 TimeMachineCanvasLayer.prototype.setResizeHandler = function(opt_resizeHandler) {
   this.resizeHandler_ = opt_resizeHandler;
+};
+
+/**
+* Sets a value for scaling the canvas resolution relative to the canvas
+* display size. This can be used to save computation by scaling the backing
+* buffer down, or to support high DPI devices by scaling it up (by e.g.
+* window.devicePixelRatio).
+* @param {number} scale
+*/
+TimeMachineCanvasLayer.prototype.setResolutionScale = function(scale) {
+  if (typeof scale === 'number') {
+    this.resolutionScale_ = scale;
+    this.resize_();
+  }
 };
 
 /**
@@ -366,7 +400,7 @@ TimeMachineCanvasLayer.prototype.onAdd = function() {
    'center_changed', this.repositionFunction_);
    */
 
-  var timelapse = this.getTimelapse();
+  var timelapse = this.timelapse;
   this.resizeListener_ = timelapse.addResizeListener(this.resizeFunction_);
   this.centerListener_ = timelapse.addViewChangeListener(this.repositionFunction_);
 
@@ -417,18 +451,22 @@ TimeMachineCanvasLayer.prototype.resize_ = function() {
     return;
   }
 
-  var timelapse = this.getTimelapse();
-  var width = timelapse.getViewerDiv().offsetWidth;
-  var height = timelapse.getViewerDiv().offsetHeight;
+  var timelapse = this.timelapse;
+
+  var timelapseWidth = timelapse.getViewerDiv().offsetWidth;
+  var timelapseHeight = timelapse.getViewerDiv().offsetHeight;
+
+  var newWidth = timelapseWidth * this.resolutionScale_;
+  var newHeight = timelapseHeight * this.resolutionScale_;
   var oldWidth = this.canvas.width;
   var oldHeight = this.canvas.height;
 
   // resizing may allocate a new back buffer, so do so conservatively
-  if (oldWidth !== width || oldHeight !== height) {
-    this.canvas.width = width;
-    this.canvas.height = height;
-    this.canvas.style.width = width + 'px';
-    this.canvas.style.height = height + 'px';
+  if (oldWidth !== newWidth || oldHeight !== newHeight) {
+    this.canvas.width = newWidth;
+    this.canvas.height = newHeight;
+    this.canvas.style.width = timelapseWidth + 'px';
+    this.canvas.style.height = timelapseHeight + 'px';
 
     this.needsResize_ = true;
     this.scheduleUpdate();
