@@ -27,8 +27,8 @@ var ThumbnailTool = function (timelapse, options) {
   var DEFAULT_BOX_PADDING = {
     top: 100,
     bottom: 150,
-    left: 100,
-    right: 100
+    left: 150,
+    right: 150
   };
   var MIN_BOX_SIZE = {
     width: 50,
