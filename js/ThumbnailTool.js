@@ -430,11 +430,17 @@ var ThumbnailTool = function (timelapse, options) {
   // Constructor code
   //
 
+  // Check options
+  if (typeof options === "undefined") options = {};
+  if (typeof options["paneZindex"] === "undefined") options["paneZindex"] = 10;
+  if (typeof options["id"] === "undefined") options["id"] = "thumbnailTool";
+
   // Create a canvas layer for drawing the cropping box and handles
   canvasLayer = new TimeMachineCanvasLayer({
     timelapse: timelapse,
     animate: false,
-    id: "thumbnailTool",
+    id: options["id"],
+    paneZindex: options["paneZindex"],
     resizeHandler: function () {
       if (!isCropBoxHidden) {
         centerAndDrawCropBox();
