@@ -181,10 +181,14 @@ var ThumbnailTool = function (timelapse, options) {
       args.nframes = 10;
     }
 
+    // This is used by the story editor
+    var orignialRootUrl = isEarthTime ? "https://headless.earthtime.org/" + shareLink : timelapse.getSettings().url;
+
     var t = new ThumbnailServiceAPI(config, args);
     return {
       url: t.serialize(),
-      args: args
+      args: args,
+      orignialRootUrl: orignialRootUrl // this is used by the story editor
     };
   };
   this.getURL = getURL;
