@@ -182,7 +182,7 @@ var ThumbnailTool = function (timelapse, options) {
     }
 
     // This is used by the story editor
-    var orignialRootUrl = isEarthTime ? "https://headless.earthtime.org/" + shareLink : timelapse.getSettings().url;
+    var orignialRootUrl = isEarthTime ? "https://earthtime.org/" + shareLink : timelapse.getSettings().url;
 
     var t = new ThumbnailServiceAPI(config, args);
     return {
