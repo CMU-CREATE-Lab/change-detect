@@ -92,21 +92,36 @@ var ThumbnailTool = function (timelapse, options) {
   this.forceAspectRatio = forceAspectRatio;
 
   var swapBoxWidthHeight = function () {
-    var center = getBoxCenter();
-    var w_half = Math.abs((cropBox.xmax - cropBox.xmin) / 2);
-    var h_half = Math.abs((cropBox.ymax - cropBox.ymin) / 2);
+    var rotatedBox = getRotatedBox();
     var r_tmp = aspectRatio;
     if (typeof r_tmp !== "undefined") clearAspectRatio();
-    setAndDrawCropBox(center.x - h_half, center.y - w_half, center.x + h_half, center.y + w_half)
+    setAndDrawCropBox(rotatedBox.xmin, rotatedBox.ymin, rotatedBox.xmax, rotatedBox.ymax);
     if (typeof r_tmp !== "undefined") aspectRatio = (1 / r_tmp).toFixed(6);
   };
   this.swapBoxWidthHeight = swapBoxWidthHeight;
 
-  var getBoxCenter = function () {
+  // Rotate the box 90 degrees, equal to swapping the height and width
+  var getRotatedBox = function (box) {
+    box = (typeof box === "undefined") ? cropBox : box;
+    var center = getBoxCenter(box);
+    var w_half = Math.abs((box.xmax - box.xmin) / 2.0);
+    var h_half = Math.abs((box.ymax - box.ymin) / 2.0);
     return {
-      x: (cropBox.xmax + cropBox.xmin) / 2,
-      y: (cropBox.ymax + cropBox.ymin) / 2
-    }
+      xmin: Math.round(center.x - h_half),
+      ymin: Math.round(center.y - w_half),
+      xmax: Math.round(center.x + h_half),
+      ymax: Math.round(center.y + w_half)
+    };
+  };
+  this.getRotatedBox = getRotatedBox;
+
+  // Get the center position of the box
+  var getBoxCenter = function (box) {
+    box = (typeof box === "undefined") ? cropBox : box;
+    return {
+      x: (box.xmax + box.xmin) / 2.0,
+      y: (box.ymax + box.ymin) / 2.0
+    };
   };
   this.getBoxCenter = getBoxCenter;
 
@@ -115,18 +130,70 @@ var ThumbnailTool = function (timelapse, options) {
   };
   this.clearAspectRatio = clearAspectRatio;
 
+  // This is a wrapper function of getURL()
+  // This function converts a share view url into settings, and pass these settings to getURL()
+  // This return format of this function is the same as getURL()
+  // This function is used for the story editor to get thumbnail urls from the saved share view url
+  // If you modify this function, you need to make sure that the story editor still works
+  var getUrlFromShareView = function (settings) {
+    if (typeof settings === "undefined") settings = {};
+    var shareViewHashParams = UTIL.unpackVars(settings["shareView"]);
+    var bt = shareViewHashParams["bt"];
+    var et = shareViewHashParams["et"];
+    var format = (bt == et) ? "png" : "mp4";
+    format = (typeof settings["format"] === "undefined") ? format : settings["format"];
+
+    // Get urls from the getURL() function
+    var url = getURL({
+      bound: timelapse.unsafeViewToView(shareViewHashParams["v"])["bbox"],
+      width: settings["width"],
+      height: settings["height"],
+      l: shareViewHashParams["l"],
+      ps: shareViewHashParams["ps"],
+      bt: bt,
+      et: et,
+      format: format,
+      embedTime: false,
+      startDwell: parseFloat(shareViewHashParams["startDwell"]),
+      endDwell: parseFloat(shareViewHashParams["endDwell"]),
+      fps: shareViewHashParams["fps"],
+      swapWidthHeight: settings["swapWidthHeight"]
+    });
+    return {
+      url: url["url"],
+      args: url["args"]
+    };
+  };
+  this.getUrlFromShareView = getUrlFromShareView;
+
   var getURL = function (settings) {
     if (typeof settings === "undefined") settings = {};
     var isEarthTime = typeof(EARTH_TIMELAPSE_CONFIG) !== "undefined";
 
+    var width = (typeof(settings["width"]) == "undefined") ? cropBox.xmax - cropBox.xmin : settings["width"];
+    var height = (typeof(settings["height"]) == "undefined") ? cropBox.ymax - cropBox.ymin : settings["height"];
     var bound = (typeof (settings["bound"]) == "undefined") ? cropBoxToViewBox() : settings["bound"];
+
+    // Swap the width and height if necessary
+    var swapWidthHeight = (typeof settings["swapWidthHeight"] === "undefined") ? false : settings["swapWidthHeight"];
+    if (swapWidthHeight) {
+      bound = getRotatedBox(bound);
+      var tmp = width;
+      width = height;
+      height = tmp;
+    }
+
     var config = {
       host: isEarthTime ? "https://thumbnails-earthtime.cmucreatelab.org/thumbnail" : "https://thumbnails-v2.createlab.org/thumbnail"
     };
-    var startFrame = settings["startTime"] ? settings["startTime"] * timelapse.getFps() : settings["startFrame"] || 0
+    var startFrame = (typeof settings["startTime"] !== "undefined") ? settings["startTime"] * timelapse.getFps() : settings["startFrame"] || 0
 
     var boundsString = bound.xmin + "," + bound.ymin + "," + bound.xmax + "," + bound.ymax;
     var desiredView = boundsString + ",pts";
+
+    var startDwell = settings["startDwell"] || 0;
+    var endDwell = settings["endDwell"] || 0;
+    var fps = (typeof(settings["fps"]) == "undefined") ? timelapse.getFps() : settings["fps"];
 
     var shareViewOptions = {};
     shareViewOptions.bt = settings['bt'];
@@ -135,20 +202,25 @@ var ThumbnailTool = function (timelapse, options) {
     shareViewOptions.l = settings['l'];
     shareViewOptions.forThumbnail = true;
 
-    var shareLink = settings['shareView'] ? "#" + settings['shareView'] : timelapse.getShareView(startTime, desiredView, shareViewOptions);
-    var rootUrl = isEarthTime ? "https://headless.earthtime.org/" + encodeURIComponent(shareLink) : timelapse.getSettings().url;
-
     var startTime = timelapse.frameNumberToTime(startFrame);
+
+    var shareLink = settings['shareView'] ? "#" + settings['shareView'] : timelapse.getShareView(startTime, desiredView, shareViewOptions);
+    var rootUrl = isEarthTime ? "https://headless.earthtime.org/" + shareLink : timelapse.getSettings().url;
+
+    // This is used for the story editor to load the dwell time from the saved share view in the Google Sheet
+    // Ultimately, we want to implement this feature in the time machine viewer
+    rootUrl += "&startDwell=" + startDwell + "&endDwell=" + endDwell + "&fps=" + fps;
+
     var args = {
       root: rootUrl,
-      width: (typeof(settings["width"]) == "undefined") ? cropBox.xmax - cropBox.xmin : settings["width"],
-      height: (typeof(settings["height"]) == "undefined") ? cropBox.ymax - cropBox.ymin : settings["height"],
+      width: width,
+      height: height,
       startFrame: startFrame,
       format: (typeof(settings["format"]) == "undefined") ? "png" : settings["format"],
-      fps: (typeof(settings["fps"]) == "undefined") ? timelapse.getFps() : settings["fps"],
+      fps: fps,
       tileFormat: timelapse.getMediaType().slice(1),
-      startDwell: settings["startDwell"] || 0,
-      endDwell: settings["endDwell"] || 0
+      startDwell: startDwell,
+      endDwell: endDwell
     };
 
     if (isEarthTime) {
@@ -181,14 +253,10 @@ var ThumbnailTool = function (timelapse, options) {
       args.nframes = 10;
     }
 
-    // This is used by the story editor
-    var orignialRootUrl = isEarthTime ? "https://earthtime.org/" + shareLink : timelapse.getSettings().url;
-
     var t = new ThumbnailServiceAPI(config, args);
     return {
       url: t.serialize(),
-      args: args,
-      orignialRootUrl: orignialRootUrl // this is used by the story editor
+      args: args
     };
   };
   this.getURL = getURL;
@@ -203,10 +271,10 @@ var ThumbnailTool = function (timelapse, options) {
       y: cropBox.ymax
     });
     return {
-      xmin: topLeftPt.x,
-      ymin: topLeftPt.y,
-      xmax: bottomRightPt.x,
-      ymax: bottomRightPt.y
+      xmin: Math.round(topLeftPt.x),
+      ymin: Math.round(topLeftPt.y),
+      xmax: Math.round(bottomRightPt.x),
+      ymax: Math.round(bottomRightPt.y)
     };
   };
   this.cropBoxToViewBox = cropBoxToViewBox;

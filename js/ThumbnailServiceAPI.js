@@ -12,7 +12,7 @@ ThumbnailServiceAPI.prototype.serializeArgs = function() {
     if (this.args.hasOwnProperty(key)) {
       var val = encodeURIComponent(key);
       if (this.args[key] !== "") {
-        val += "=" + this.args[key];
+        val += "=" + encodeURIComponent(this.args[key]);
       }
       str.push(val);
     }
