@@ -35,9 +35,20 @@ var ThumbnailTool = function (timelapse, options) {
     height: 50
   };
 
-  ///////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //
-  // public functions
+  // Private methods
+  //
+
+  // Safely get the value from a variable, return a default value if undefined
+  function safeGet(v, default_val) {
+    if (typeof default_val === "undefined") default_val = "";
+    return (typeof v === "undefined") ? default_val : v;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //
+  // Privileged methods
   //
 
   var resizeCanvas = function () {
@@ -49,7 +60,7 @@ var ThumbnailTool = function (timelapse, options) {
     if (isCropBoxHidden) {
       canvasLayer.resize_();
       isCropBoxHidden = false;
-      if (typeof(cropBox.xmin) == "undefined") {
+      if (typeof cropBox.xmin === "undefined") {
         centerCropBox();
       } else {
         setCropBox();
@@ -102,7 +113,7 @@ var ThumbnailTool = function (timelapse, options) {
 
   // Rotate the box 90 degrees, equal to swapping the height and width
   var getRotatedBox = function (box) {
-    box = (typeof box === "undefined") ? cropBox : box;
+    box = safeGet(box, cropBox);
     var center = getBoxCenter(box);
     var w_half = Math.abs((box.xmax - box.xmin) / 2.0);
     var h_half = Math.abs((box.ymax - box.ymin) / 2.0);
@@ -117,7 +128,7 @@ var ThumbnailTool = function (timelapse, options) {
 
   // Get the center position of the box
   var getBoxCenter = function (box) {
-    box = (typeof box === "undefined") ? cropBox : box;
+    box = safeGet(box, cropBox);
     return {
       x: (box.xmax + box.xmin) / 2.0,
       y: (box.ymax + box.ymin) / 2.0
@@ -136,12 +147,15 @@ var ThumbnailTool = function (timelapse, options) {
   // This function is used for the story editor to get thumbnail urls from the saved share view url
   // If you modify this function, you need to make sure that the story editor still works
   var getUrlFromShareView = function (settings) {
-    if (typeof settings === "undefined") settings = {};
+    settings = safeGet(settings, {});
+    if (typeof settings["shareView"] === "undefined" || settings["shareView"].trim() == "") return;
     var shareViewHashParams = UTIL.unpackVars(settings["shareView"]);
+    if (typeof shareViewHashParams["v"] === "undefined") return;
     var bt = shareViewHashParams["bt"];
     var et = shareViewHashParams["et"];
+    var ps = (bt == et) ? 0 : shareViewHashParams["ps"];
     var format = (bt == et) ? "png" : "mp4";
-    format = (typeof settings["format"] === "undefined") ? format : settings["format"];
+    format = safeGet(settings["format"], format);
 
     // Get urls from the getURL() function
     var url = getURL({
@@ -149,7 +163,7 @@ var ThumbnailTool = function (timelapse, options) {
       width: settings["width"],
       height: settings["height"],
       l: shareViewHashParams["l"],
-      ps: shareViewHashParams["ps"],
+      ps: ps,
       bt: bt,
       et: et,
       format: format,
@@ -167,15 +181,15 @@ var ThumbnailTool = function (timelapse, options) {
   this.getUrlFromShareView = getUrlFromShareView;
 
   var getURL = function (settings) {
-    if (typeof settings === "undefined") settings = {};
+    settings = safeGet(settings, {});
     var isEarthTime = typeof(EARTH_TIMELAPSE_CONFIG) !== "undefined";
 
-    var width = (typeof(settings["width"]) == "undefined") ? cropBox.xmax - cropBox.xmin : settings["width"];
-    var height = (typeof(settings["height"]) == "undefined") ? cropBox.ymax - cropBox.ymin : settings["height"];
-    var bound = (typeof (settings["bound"]) == "undefined") ? cropBoxToViewBox() : settings["bound"];
+    var width = safeGet(settings["width"], cropBox.xmax - cropBox.xmin);
+    var height = safeGet(settings["height"], cropBox.ymax - cropBox.ymin);
+    var bound = safeGet(settings["bound"], cropBoxToViewBox());
 
     // Swap the width and height if necessary
-    var swapWidthHeight = (typeof settings["swapWidthHeight"] === "undefined") ? false : settings["swapWidthHeight"];
+    var swapWidthHeight = safeGet(settings["swapWidthHeight"], false);
     if (swapWidthHeight) {
       bound = getRotatedBox(bound);
       var tmp = width;
@@ -191,20 +205,25 @@ var ThumbnailTool = function (timelapse, options) {
     var boundsString = bound.xmin + "," + bound.ymin + "," + bound.xmax + "," + bound.ymax;
     var desiredView = boundsString + ",pts";
 
-    var startDwell = settings["startDwell"] || 0;
-    var endDwell = settings["endDwell"] || 0;
-    var fps = (typeof(settings["fps"]) == "undefined") ? timelapse.getFps() : settings["fps"];
+    var startDwell = safeGet(settings["startDwell"], 0);
+    var endDwell = safeGet(settings["endDwell"], 0);
+    var fps = safeGet(settings["fps"], timelapse.getFps());
+    var ps = safeGet(settings["ps"], timelapse.getPlaybackRate() * 100);
+    var bt = settings["bt"];
+    var et = settings["et"];
+    var format = safeGet(settings["format"], "png");
+    if (format == "png" || bt == et) ps = 0;
 
     var shareViewOptions = {};
-    shareViewOptions.bt = settings['bt'];
-    shareViewOptions.et = settings['et'];
-    shareViewOptions.ps = settings['ps'];
+    shareViewOptions.bt = bt;
+    shareViewOptions.et = et;
+    shareViewOptions.ps = ps;
     shareViewOptions.l = settings['l'];
     shareViewOptions.forThumbnail = true;
 
     var startTime = timelapse.frameNumberToTime(startFrame);
 
-    var shareLink = settings['shareView'] ? "#" + settings['shareView'] : timelapse.getShareView(startTime, desiredView, shareViewOptions);
+    var shareLink = (typeof settings['shareView'] !== "undefined") ? "#" + settings['shareView'] : timelapse.getShareView(startTime, desiredView, shareViewOptions);
     var rootUrl = isEarthTime ? "https://headless.earthtime.org/" + shareLink : timelapse.getSettings().url;
 
     // This is used for the story editor to load the dwell time from the saved share view in the Google Sheet
@@ -216,11 +235,12 @@ var ThumbnailTool = function (timelapse, options) {
       width: width,
       height: height,
       startFrame: startFrame,
-      format: (typeof(settings["format"]) == "undefined") ? "png" : settings["format"],
+      format: format,
       fps: fps,
       tileFormat: timelapse.getMediaType().slice(1),
       startDwell: startDwell,
-      endDwell: endDwell
+      endDwell: endDwell,
+      ps: ps
     };
 
     if (isEarthTime) {
@@ -304,24 +324,24 @@ var ThumbnailTool = function (timelapse, options) {
   //
 
   var setCropBox = function (xmin_box, ymin_box, xmax_box, ymax_box) {
-    var xmin_box_was_defined = typeof(xmin_box) != "undefined";
-    var xmax_box_was_defined = typeof(xmax_box) != "undefined";
-    var ymin_box_was_defined = typeof(ymin_box) != "undefined";
-    var ymax_box_was_defined = typeof(ymax_box) != "undefined";
+    var xmin_box_was_defined = (typeof xmin_box !== "undefined");
+    var xmax_box_was_defined = (typeof xmax_box !== "undefined");
+    var ymin_box_was_defined = (typeof ymin_box !== "undefined");
+    var ymax_box_was_defined = (typeof ymax_box !== "undefined");
     var min_box_width = MIN_BOX_SIZE.width;
     var min_box_height = MIN_BOX_SIZE.height;
 
     // If a value is undefined, use the original value
-    if (typeof xmin_box == "undefined") {
+    if (typeof xmin_box === "undefined") {
       xmin_box = cropBox.xmin;
     }
-    if (typeof xmax_box == "undefined") {
+    if (typeof xmax_box === "undefined") {
       xmax_box = cropBox.xmax;
     }
-    if (typeof ymin_box == "undefined") {
+    if (typeof ymin_box === "undefined") {
       ymin_box = cropBox.ymin;
     }
-    if (typeof ymax_box == "undefined") {
+    if (typeof ymax_box === "undefined") {
       ymax_box = cropBox.ymax;
     }
 
@@ -503,16 +523,16 @@ var ThumbnailTool = function (timelapse, options) {
   //
 
   // Check options
-  if (typeof options === "undefined") options = {};
-  if (typeof options["paneZindex"] === "undefined") options["paneZindex"] = 10;
-  if (typeof options["id"] === "undefined") options["id"] = "thumbnailTool";
+  options = safeGet(options, {});
+  var canvasZindex = safeGet(options["paneZindex"], 10);
+  var canvasId = safeGet(options["id"], "thumbnailTool");
 
   // Create a canvas layer for drawing the cropping box and handles
   canvasLayer = new TimeMachineCanvasLayer({
     timelapse: timelapse,
     animate: false,
-    id: options["id"],
-    paneZindex: options["paneZindex"],
+    id: canvasId,
+    paneZindex: canvasZindex,
     resizeHandler: function () {
       if (!isCropBoxHidden) {
         centerAndDrawCropBox();
