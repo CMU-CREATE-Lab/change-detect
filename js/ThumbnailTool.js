@@ -158,24 +158,29 @@ var ThumbnailTool = function (timelapse, options) {
     format = safeGet(settings["format"], format);
 
     // Get urls from the getURL() function
-    var url = getURL({
+    var args = {
       bound: timelapse.unsafeViewToView(shareViewHashParams["v"])["bbox"],
       width: settings["width"],
       height: settings["height"],
       l: shareViewHashParams["l"],
-      ps: ps,
+      ps: parseInt(ps),
       bt: bt,
       et: et,
       format: format,
       embedTime: false,
       startDwell: parseFloat(shareViewHashParams["startDwell"]),
       endDwell: parseFloat(shareViewHashParams["endDwell"]),
-      fps: shareViewHashParams["fps"],
+      fps: parseInt(shareViewHashParams["fps"]),
       swapWidthHeight: settings["swapWidthHeight"]
-    });
+    };
+    var url = getURL(args);
+    for (var key in url["args"]) {
+      args[key] = url["args"][key];
+    }
+
     return {
       url: url["url"],
-      args: url["args"]
+      args: args
     };
   };
   this.getUrlFromShareView = getUrlFromShareView;
