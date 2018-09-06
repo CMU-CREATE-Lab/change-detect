@@ -7,6 +7,7 @@ var ThumbnailTool = function (timelapse, options) {
   //
 
   // Others
+  options = safeGet(options, {});
   var thisObj = this;
   var canvasLayer;
   var ctx;
@@ -24,16 +25,17 @@ var ThumbnailTool = function (timelapse, options) {
   var UTIL = org.gigapan.Util;
   var aspectRatio;
 
-  var DEFAULT_BOX_PADDING = {
+  var defaultBoxPadding = (typeof options["defaultBoxPadding"] === "undefined") ? {
     top: 100,
     bottom: 150,
     left: 150,
     right: 150
-  };
-  var MIN_BOX_SIZE = {
-    width: 50,
-    height: 50
-  };
+  } : options["defaultBoxPadding"];
+
+  var minBoxSize = (typeof options["minBoxSize"] === "undefined") ? {
+    width: 100,
+    height: 100
+  } : options["minBoxSize"];
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //
@@ -41,9 +43,9 @@ var ThumbnailTool = function (timelapse, options) {
   //
 
   // Safely get the value from a variable, return a default value if undefined
-  function safeGet(v, default_val) {
-    if (typeof default_val === "undefined") default_val = "";
-    return (typeof v === "undefined") ? default_val : v;
+  function safeGet(v, defaultVal) {
+    if (typeof defaultVal === "undefined") defaultVal = "";
+    return (typeof v === "undefined") ? defaultVal : v;
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -82,16 +84,16 @@ var ThumbnailTool = function (timelapse, options) {
   this.hideCropBox = hideCropBox;
 
   var centerAndDrawCropBox = function () {
-    prevBoxWidth = null;
-    prevBoxHeight = null;
+    prevBoxWidth = undefined;
+    prevBoxHeight = undefined;
     centerCropBox();
     drawCropBox();
   };
   this.centerAndDrawCropBox = centerAndDrawCropBox;
 
   var redrawCropBox = function () {
-    prevBoxWidth = null;
-    prevBoxHeight = null;
+    prevBoxWidth = undefined;
+    prevBoxHeight = undefined;
     setCropBox();
     drawCropBox();
   };
@@ -103,11 +105,15 @@ var ThumbnailTool = function (timelapse, options) {
   this.forceAspectRatio = forceAspectRatio;
 
   var swapBoxWidthHeight = function () {
-    var rotatedBox = getRotatedBox();
     var r_tmp = aspectRatio;
-    if (typeof r_tmp !== "undefined") clearAspectRatio();
-    setAndDrawCropBox(rotatedBox.xmin, rotatedBox.ymin, rotatedBox.xmax, rotatedBox.ymax);
-    if (typeof r_tmp !== "undefined") aspectRatio = (1 / r_tmp).toFixed(6);
+    if (typeof r_tmp === "undefined") {
+      var rotatedBox = getRotatedBox();
+      setAndDrawCropBox(rotatedBox.xmin, rotatedBox.ymin, rotatedBox.xmax, rotatedBox.ymax);
+    } else {
+      clearAspectRatio();
+      aspectRatio = (1 / r_tmp).toFixed(6);
+      centerAndDrawCropBox();
+    }
   };
   this.swapBoxWidthHeight = swapBoxWidthHeight;
 
@@ -328,86 +334,79 @@ var ThumbnailTool = function (timelapse, options) {
   // private functions
   //
 
-  var setCropBox = function (xmin_box, ymin_box, xmax_box, ymax_box) {
-    var xmin_box_was_defined = (typeof xmin_box !== "undefined");
-    var xmax_box_was_defined = (typeof xmax_box !== "undefined");
-    var ymin_box_was_defined = (typeof ymin_box !== "undefined");
-    var ymax_box_was_defined = (typeof ymax_box !== "undefined");
-    var min_box_width = MIN_BOX_SIZE.width;
-    var min_box_height = MIN_BOX_SIZE.height;
+  var setCropBox = function (xmin, ymin, xmax, ymax) {
+    var xminWasDefined = (typeof xmin !== "undefined");
+    var xmaxWasDefined = (typeof xmax !== "undefined");
+    var yminWasDefined = (typeof ymin !== "undefined");
+    var ymaxWasDefined = (typeof ymax !== "undefined");
 
     // If a value is undefined, use the original value
-    if (typeof xmin_box === "undefined") {
-      xmin_box = cropBox.xmin;
-    }
-    if (typeof xmax_box === "undefined") {
-      xmax_box = cropBox.xmax;
-    }
-    if (typeof ymin_box === "undefined") {
-      ymin_box = cropBox.ymin;
-    }
-    if (typeof ymax_box === "undefined") {
-      ymax_box = cropBox.ymax;
-    }
+    xmin = safeGet(xmin, cropBox.xmin);
+    xmax = safeGet(xmax, cropBox.xmax);
+    ymin = safeGet(ymin, cropBox.ymin);
+    ymax = safeGet(ymax, cropBox.ymax);
+    boxWidth = xmax - xmin;
+    boxHeight = ymax - ymin;
 
-    boxWidth = (xmax_box - xmin_box);
-    boxHeight = (ymax_box - ymin_box);
-
-    if (aspectRatio) {
-      var boxHeightDiff = (boxWidth / aspectRatio) - boxHeight;
-      var boxWidthDiff = (boxHeight * aspectRatio) - boxWidth;
-      if (xmax_box_was_defined && ymax_box_was_defined && prevBoxHeight != null) {
-        xmax_box += boxWidthDiff / 2;
-        ymax_box += boxHeightDiff / 2;
-      } else if (xmin_box_was_defined && ymin_box_was_defined && prevBoxHeight != null) {
-        xmin_box -= boxWidthDiff / 2;
-        ymin_box -= boxHeightDiff / 2;
-      } else if (xmin_box_was_defined && ymax_box_was_defined && prevBoxHeight != null) {
-        xmin_box -= boxWidthDiff / 2;
-        ymax_box += boxHeightDiff / 2;
-      } else if (xmax_box_was_defined && ymin_box_was_defined && prevBoxHeight != null) {
-        xmax_box += boxWidthDiff / 2;
-        ymin_box -= boxHeightDiff / 2;
-      } else if (boxWidth != prevBoxWidth) {
-        ymax_box += boxHeightDiff / 2;
-        ymin_box -= boxHeightDiff / 2;
-      } else if (boxHeight != prevBoxHeight) {
-        xmax_box += boxWidthDiff / 2;
-        xmin_box -= boxWidthDiff / 2;
+    // Adjust box according to the aspect ratio
+    if (typeof aspectRatio !== "undefined") {
+      var boxHeightDiff, boxWidthDiff;
+      boxHeightDiff = (boxWidth / aspectRatio) - boxHeight;
+      boxWidthDiff = (boxHeight * aspectRatio) - boxWidth;
+      if (typeof prevBoxWidth === "undefined" && typeof prevBoxHeight === "undefined") {
+        // For initial status
+        if (aspectRatio > 1) {
+          ymax += boxHeightDiff / 2;
+          ymin -= boxHeightDiff / 2;
+        } else {
+          xmax += boxWidthDiff / 2;
+          xmin -= boxWidthDiff / 2;
+        }
+      } else {
+        // For dragging handles (there are 8 handles on the edges and corners of the box)
+        if (xmaxWasDefined && ymaxWasDefined && prevBoxHeight != null) {
+          xmax += boxWidthDiff / 2;
+          ymax += boxHeightDiff / 2;
+        } else if (xminWasDefined && yminWasDefined && prevBoxHeight != null) {
+          xmin -= boxWidthDiff / 2;
+          ymin -= boxHeightDiff / 2;
+        } else if (xminWasDefined && ymaxWasDefined && prevBoxHeight != null) {
+          xmin -= boxWidthDiff / 2;
+          ymax += boxHeightDiff / 2;
+        } else if (xmaxWasDefined && yminWasDefined && prevBoxHeight != null) {
+          xmax += boxWidthDiff / 2;
+          ymin -= boxHeightDiff / 2;
+        } else if (boxWidth != prevBoxWidth) {
+          ymax += boxHeightDiff / 2;
+          ymin -= boxHeightDiff / 2;
+        } else if (boxHeight != prevBoxHeight) {
+          xmax += boxWidthDiff / 2;
+          xmin -= boxWidthDiff / 2;
+        }
       }
-      boxWidth = (xmax_box - xmin_box);
-      boxHeight = (ymax_box - ymin_box);
+      boxWidth = xmax - xmin;
+      boxHeight = ymax - ymin;
     }
-
-    if (boxWidth < min_box_width || boxHeight < min_box_height) {
-      return;
-    }
-
-    prevBoxWidth = boxWidth;
-    prevBoxHeight = boxHeight;
 
     // Check if the size is too small
-    var isWidthTooSmall = false;
-    var isHeightTooSmall = false;
-    if (xmax_box - xmin_box < min_box_width) {
-      isWidthTooSmall = true;
-    }
-    if (ymax_box - ymin_box < min_box_height) {
-      isHeightTooSmall = true;
-    }
+    var isWidthTooSmall = (boxWidth < minBoxSize.width) ? true : false;
+    var isHeightTooSmall = (boxHeight < minBoxSize.height) ? true : false;
+    if (isWidthTooSmall || isHeightTooSmall) return;
+    prevBoxWidth = boxWidth;
+    prevBoxHeight = boxHeight;
     if (!isWidthTooSmall) {
-      cropBox.xmin = xmin_box;
-      cropBox.xmax = xmax_box;
+      cropBox.xmin = xmin;
+      cropBox.xmax = xmax;
       /*
        * 0 1 2
        * 7 8 3
        * 6 5 4
        */
-      cropHandle[0].xmin = xmin_box - cropHandleSize;
-      cropHandle[1].xmin = (xmin_box + xmax_box) / 2.0 - cropHandleHalfSize;
-      cropHandle[2].xmin = xmax_box;
-      cropHandle[3].xmin = xmax_box;
-      cropHandle[4].xmin = xmax_box;
+      cropHandle[0].xmin = xmin - cropHandleSize;
+      cropHandle[1].xmin = (xmin + xmax) / 2.0 - cropHandleHalfSize;
+      cropHandle[2].xmin = xmax;
+      cropHandle[3].xmin = xmax;
+      cropHandle[4].xmin = xmax;
       cropHandle[5].xmin = cropHandle[1].xmin;
       cropHandle[6].xmin = cropHandle[0].xmin;
       cropHandle[7].xmin = cropHandle[0].xmin;
@@ -418,20 +417,20 @@ var ThumbnailTool = function (timelapse, options) {
     }
     if (!isHeightTooSmall) {
       // Set box height
-      cropBox.ymin = ymin_box;
-      cropBox.ymax = ymax_box;
+      cropBox.ymin = ymin;
+      cropBox.ymax = ymax;
       /*
        * 0 1 2
        * 7 8 3
        * 6 5 4
        */
-      cropHandle[0].ymin = ymin_box - cropHandleSize;
+      cropHandle[0].ymin = ymin - cropHandleSize;
       cropHandle[1].ymin = cropHandle[0].ymin;
       cropHandle[2].ymin = cropHandle[0].ymin;
-      cropHandle[3].ymin = (ymin_box + ymax_box) / 2.0 - cropHandleHalfSize;
-      cropHandle[4].ymin = ymax_box;
-      cropHandle[5].ymin = ymax_box;
-      cropHandle[6].ymin = ymax_box;
+      cropHandle[3].ymin = (ymin + ymax) / 2.0 - cropHandleHalfSize;
+      cropHandle[4].ymin = ymax;
+      cropHandle[5].ymin = ymax;
+      cropHandle[6].ymin = ymax;
       cropHandle[7].ymin = cropHandle[3].ymin;
       cropHandle[8].ymin = cropHandle[3].ymin;
       for (var i = 0; i < cropHandle.length; i++) {
@@ -479,10 +478,10 @@ var ThumbnailTool = function (timelapse, options) {
   };
 
   var centerCropBox = function () {
-    var t = cropHandleSize + DEFAULT_BOX_PADDING.top;
-    var b = cropHandleSize + DEFAULT_BOX_PADDING.bottom;
-    var l = cropHandleSize + DEFAULT_BOX_PADDING.left;
-    var r = cropHandleSize + DEFAULT_BOX_PADDING.right;
+    var t = cropHandleSize + defaultBoxPadding.top;
+    var b = cropHandleSize + defaultBoxPadding.bottom;
+    var l = cropHandleSize + defaultBoxPadding.left;
+    var r = cropHandleSize + defaultBoxPadding.right;
     setCropBox(l, t, canvasLayer.canvas.width - r, canvasLayer.canvas.height - b);
   };
 
@@ -528,7 +527,6 @@ var ThumbnailTool = function (timelapse, options) {
   //
 
   // Check options
-  options = safeGet(options, {});
   var canvasZindex = safeGet(options["paneZindex"], 10);
   var canvasId = safeGet(options["id"], "thumbnailTool");
 
