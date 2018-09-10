@@ -239,7 +239,7 @@ var ThumbnailTool = function (timelapse, options) {
 
     // This is used for the story editor to load the dwell time from the saved share view in the Google Sheet
     // Ultimately, we want to implement this feature in the time machine viewer
-    rootUrl += "&startDwell=" + startDwell + "&endDwell=" + endDwell + "&fps=" + fps;
+    //rootUrl += "&startDwell=" + startDwell + "&endDwell=" + endDwell + "&fps=" + fps;
 
     var args = {
       root: rootUrl,
@@ -251,7 +251,6 @@ var ThumbnailTool = function (timelapse, options) {
       tileFormat: timelapse.getMediaType().slice(1),
       startDwell: startDwell,
       endDwell: endDwell,
-      ps: ps
     };
 
     if (isEarthTime) {
