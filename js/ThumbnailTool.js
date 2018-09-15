@@ -169,14 +169,14 @@ var ThumbnailTool = function (timelapse, options) {
       width: settings["width"],
       height: settings["height"],
       l: shareViewHashParams["l"],
-      ps: parseInt(ps),
+      ps: ps,
       bt: bt,
       et: et,
       format: format,
       embedTime: false,
-      startDwell: parseFloat(shareViewHashParams["startDwell"]),
-      endDwell: parseFloat(shareViewHashParams["endDwell"]),
-      fps: parseInt(shareViewHashParams["fps"]),
+      startDwell: shareViewHashParams["startDwell"],
+      endDwell: shareViewHashParams["endDwell"],
+      fps: shareViewHashParams["fps"],
       swapWidthHeight: settings["swapWidthHeight"]
     };
     var url = getURL(args);
@@ -193,14 +193,15 @@ var ThumbnailTool = function (timelapse, options) {
 
   var getURL = function (settings) {
     settings = safeGet(settings, {});
+    // This is a global data struct that is created for an instance of EarthTime
     var isEarthTime = typeof(EARTH_TIMELAPSE_CONFIG) !== "undefined";
 
-    var width = safeGet(settings["width"], cropBox.xmax - cropBox.xmin);
-    var height = safeGet(settings["height"], cropBox.ymax - cropBox.ymin);
-    var bound = safeGet(settings["bound"], cropBoxToViewBox());
+    var width = safeGet(settings.width, cropBox.xmax - cropBox.xmin);
+    var height = safeGet(settings.height, cropBox.ymax - cropBox.ymin);
+    var bound = safeGet(settings.bound, cropBoxToViewBox());
 
     // Swap the width and height if necessary
-    var swapWidthHeight = safeGet(settings["swapWidthHeight"], false);
+    var swapWidthHeight = safeGet(settings.swapWidthHeight, false);
     if (swapWidthHeight) {
       bound = getRotatedBox(bound);
       var tmp = width;
@@ -211,53 +212,84 @@ var ThumbnailTool = function (timelapse, options) {
     var config = {
       host: isEarthTime ? "https://thumbnails-earthtime.cmucreatelab.org/thumbnail" : "https://thumbnails-v2.createlab.org/thumbnail"
     };
-    var startFrame = (typeof settings["startTime"] !== "undefined") ? settings["startTime"] * timelapse.getFps() : settings["startFrame"] || 0
 
-    var boundsString = bound.xmin + "," + bound.ymin + "," + bound.xmax + "," + bound.ymax;
-    var desiredView = boundsString + ",pts";
+    var boundsString = "";
+    bound = bound.bbox ? bound.bbox : bound;
+    try {
+      if (isEarthTime) {
+        if (bound.center) {
+          boundsString = bound.center.lat + "," + bound.center.lng + "," + bound.zoom + ",latLng";
+        } else {
+          boundsString = bound.xmin + "," + bound.ymin + "," + bound.xmax + "," + bound.ymax + ",pts";
+        }
+      } else {
+        boundsString = bound.xmin + "," + bound.ymin + "," + bound.xmax + "," + bound.ymax;
+      }
+    } catch(e) {
+      UTIL.error("Error computing thumbnail URL. Supported input views include only latLng center views or pixel bounding boxes/views.");
+      return "";
+    }
 
-    var startDwell = safeGet(settings["startDwell"], 0);
-    var endDwell = safeGet(settings["endDwell"], 0);
-    var fps = safeGet(settings["fps"], timelapse.getFps());
-    var ps = safeGet(settings["ps"], timelapse.getPlaybackRate() * 100);
-    var bt = settings["bt"];
-    var et = settings["et"];
-    var format = safeGet(settings["format"], "png");
-    if (format == "png" || bt == et) ps = 0;
-
-    var shareViewOptions = {};
-    shareViewOptions.bt = bt;
-    shareViewOptions.et = et;
-    shareViewOptions.ps = ps;
-    shareViewOptions.l = settings['l'];
-    shareViewOptions.forThumbnail = true;
-
-    var startTime = timelapse.frameNumberToTime(startFrame);
-
-    var shareLink = (typeof settings['shareView'] !== "undefined") ? "#" + settings['shareView'] : timelapse.getShareView(startTime, desiredView, shareViewOptions);
-    var rootUrl = isEarthTime ? "https://headless.earthtime.org/" + shareLink : timelapse.getSettings().url;
-
-    // This is used for the story editor to load the dwell time from the saved share view in the Google Sheet
-    // Ultimately, we want to implement this feature in the time machine viewer
-    // TODO: we need to decide to put these parameters inside the root url or in the args
-    rootUrl += "&startDwell=" + startDwell + "&endDwell=" + endDwell + "&fps=" + fps;
+    // TODO: Do we want a default value of timelapse.getCurrentTime() rather than always be 0?
+    var startTime = safeGet(settings.startTime, settings["t"] || 0);
+    // frameTime (which was the value of startTime) used to be what was passed to the server but now startFrame is preferred.
+    var startFrame = safeGet(settings.startFrame, startTime * timelapse.getFps());
+    if (settings.startFrame) {
+      startTime = timelapse.frameNumberToTime(startFrame);
+    }
+    var format = safeGet(settings.format, "png");
+    var fps = safeGet(settings.fps, timelapse.getFps());
+    var tileFormat = timelapse.getMediaType().slice(1);
+    var startDwell = safeGet(settings.startDwell, 0);
+    var endDwell = safeGet(settings.endDwell, 0);
+    var bt = settings.bt;
+    var et = settings.et;
+    var ps = safeGet(settings.ps, timelapse.getPlaybackRate() * 100);
+    if (format == "png" || bt == et) {
+      ps = 0;
+    }
+    var layers = safeGet(settings.l, "");
+    var nframes = 1;
+    if (ps == 0) {
+      nframes = 1;
+    } else if (typeof(settings.endTime) !== "undefined") {
+      // endTime is legacy code that appears to only be used by timelineMetadataVisualizer.js
+      nframes = Math.floor((settings.endTime - startTime) * timelapse.getFps() + 1);
+    } else if (typeof(settings.nframes) !== "undefined") {
+      nframes = settings.nframes;
+    }
 
     var args = {
-      root: rootUrl,
+      root: "",
       width: width,
       height: height,
-      startFrame: startFrame,
       format: format,
       fps: fps,
-      tileFormat: timelapse.getMediaType().slice(1),
+      tileFormat: tileFormat,
       startDwell: startDwell,
       endDwell: endDwell,
     };
+
+    var rootUrl = "";
+    if (isEarthTime) {
+      var shareViewSettings = {ps: ps, l: layers, bt: bt, et: et, startDwell: startDwell, endDwell: endDwell, forThumbnail : true};
+      var shareLink = timelapse.getShareView(startTime, boundsString, shareViewSettings);
+      rootUrl = "https://headless.earthtime.org/" + shareLink;
+    } else {
+      rootUrl = timelapse.getSettings().url;
+    }
+
+    // TODO: This is used for the story editor to load the fps from the saved share view in the Google Sheet
+    rootUrl += "&fps=" + fps;
+
+    args.root = rootUrl;
 
     if (isEarthTime) {
       args.fromScreenshot = "";
     } else {
       args.boundsLTRB = boundsString;
+      args.startFrame = startFrame;
+      args.nframes = nframes;
     }
 
     if (settings.smoothPlayback) {
@@ -274,14 +306,6 @@ var ThumbnailTool = function (timelapse, options) {
 
     if (settings.baseMapsNoLabels) {
       args.baseMapsNoLabels = "";
-    }
-
-    if (typeof (settings["endTime"]) != "undefined") {
-      args.nframes = parseInt((settings["endTime"] - args.frameTime) * timelapse.getFps() + 1);
-    } else if (typeof (settings["nframes"]) != "undefined") {
-      args.nframes = parseInt(settings["nframes"]);
-    } else {
-      args.nframes = 10;
     }
 
     var t = new ThumbnailServiceAPI(config, args);
