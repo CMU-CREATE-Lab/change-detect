@@ -171,6 +171,7 @@ var ThumbnailTool = function (timelapse, options) {
       l: shareViewHashParams["l"],
       ps: ps,
       bt: bt,
+      t: shareViewHashParams["t"],
       et: et,
       format: format,
       embedTime: false,
