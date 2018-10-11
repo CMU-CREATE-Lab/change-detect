@@ -249,7 +249,7 @@ var ThumbnailTool = function (timelapse, options) {
     if (format == "png" || bt == et) {
       ps = 0;
     }
-    var layers = safeGet(settings.l, "");
+    var layers = settings.l;
     var nframes = 1;
     if (ps == 0) {
       nframes = 1;
