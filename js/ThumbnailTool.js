@@ -211,7 +211,7 @@ var ThumbnailTool = function (timelapse, options) {
     }
 
     var config = {
-      host: isEarthTime ? "https://thumbnails-earthtime.cmucreatelab.org/thumbnail" : "https://thumbnails-v2.createlab.org/thumbnail"
+      host: isEarthTime ? "https://thumbnails-earthtime.cmucreatelab.org/thumbnail" : "http://thumbnails.cmucreatelab.org/thumbnail"
     };
 
     var boundsString = "";
@@ -276,12 +276,11 @@ var ThumbnailTool = function (timelapse, options) {
       var shareViewSettings = {ps: ps, l: layers, bt: bt, et: et, startDwell: startDwell, endDwell: endDwell, forThumbnail : true};
       var shareLink = timelapse.getShareView(startTime, boundsString, shareViewSettings);
       rootUrl = "https://headless.earthtime.org/" + shareLink;
+      // TODO: This is used for the story editor to load the fps from the saved share view in the Google Sheet
+      rootUrl += "&fps=" + fps;
     } else {
       rootUrl = timelapse.getSettings().url;
     }
-
-    // TODO: This is used for the story editor to load the fps from the saved share view in the Google Sheet
-    rootUrl += "&fps=" + fps;
 
     args.root = rootUrl;
 
