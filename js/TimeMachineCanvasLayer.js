@@ -1,19 +1,3 @@
-org.gigapan.timelapse.Timelapse.prototype.getScale = function() {
-  var view = this.getView();
-  return view.scale;
-}
-
-org.gigapan.timelapse.OverlayView = function() {
-}
-
-org.gigapan.timelapse.OverlayView.prototype.setTimelapse = function(timelapse) {
-  this.timelapse = timelapse;
-  this.onAdd();
-}
-
-org.gigapan.timelapse.OverlayView.prototype.getTimelapse = function() {
-  return this.timelapse;
-}
 /**
  * Copyright 2012 Google Inc. All Rights Reserved.
  *
@@ -33,7 +17,25 @@ org.gigapan.timelapse.OverlayView.prototype.getTimelapse = function() {
 /**
  * @fileoverview Extends OverlayView to provide a canvas "Layer".
  * @author Brendan Kenny
+ * Modified by: Paul Dille (pdille@andrew.cmu.edu) & Gabriel O'Donnell (gabrielo@cmu.edu)
  */
+
+org.gigapan.timelapse.Timelapse.prototype.getScale = function() {
+  var view = this.getView();
+  return view.scale;
+}
+
+org.gigapan.timelapse.OverlayView = function() {
+}
+
+org.gigapan.timelapse.OverlayView.prototype.setTimelapse = function(timelapse) {
+  this.timelapse = timelapse;
+  this.onAdd();
+}
+
+org.gigapan.timelapse.OverlayView.prototype.getTimelapse = function() {
+  return this.timelapse;
+}
 
 /**
  * A map layer that provides a canvas over the slippy map and a callback
