@@ -203,9 +203,14 @@ var ThumbnailTool = function (timelapse, options) {
     var format = (bt == et) ? "png" : "mp4";
     format = safeGet(settings["format"], format);
 
-    // Get urls from the getURL() function
+    var viewObj = timelapse.unsafeViewToView(shareViewHashParams["v"]);
+    // If not in bounding box form, convert it to this.
+    if (!viewObj.bbox) {
+      // Normalize view will give you a pixel center view
+      viewObj = timelapse.pixelCenterToPixelBoundingBoxView(timelapse.normalizeView(timelapse.unsafeViewToView(viewObj)));
+    }
     var args = {
-      bound: timelapse.unsafeViewToView(shareViewHashParams["v"])["bbox"],
+      bound: viewObj["bbox"],
       width: settings["width"],
       height: settings["height"],
       l: shareViewHashParams["l"],
