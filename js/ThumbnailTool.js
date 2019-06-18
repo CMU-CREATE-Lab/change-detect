@@ -64,6 +64,8 @@ var ThumbnailTool = function (timelapse, options) {
   var prevBoxHeight;
   var UTIL = org.gigapan.Util;
   var aspectRatio;
+  var isEarthTime = UTIL.isEarthTime();
+  var isEarthTimeMinimal = UTIL.isEarthTimeMinimal();
 
   var defaultBoxPadding = (typeof options["defaultBoxPadding"] === "undefined") ? {
     top: 100,
@@ -239,8 +241,6 @@ var ThumbnailTool = function (timelapse, options) {
 
   var getURL = function (settings) {
     settings = safeGet(settings, {});
-    // This is a global data struct that is created for an instance of EarthTime
-    var isEarthTime = typeof(EARTH_TIMELAPSE_CONFIG) !== "undefined";
 
     var width = safeGet(settings.width, cropBox.xmax - cropBox.xmin);
     var height = safeGet(settings.height, cropBox.ymax - cropBox.ymin);
@@ -256,13 +256,13 @@ var ThumbnailTool = function (timelapse, options) {
     }
 
     var config = {
-      host: isEarthTime ? "https://thumbnails-earthtime.cmucreatelab.org/thumbnail" : "http://thumbnails.cmucreatelab.org/thumbnail"
+      host: (isEarthTime && !isEarthTimeMinimal) ? "https://thumbnails-earthtime.cmucreatelab.org/thumbnail" : "http://thumbnails.cmucreatelab.org/thumbnail"
     };
 
     var boundsString = "";
     bound = bound.bbox ? bound.bbox : bound;
     try {
-      if (isEarthTime) {
+      if (isEarthTime && !isEarthTimeMinimal) {
         if (bound.center) {
           boundsString = bound.center.lat + "," + bound.center.lng + "," + bound.zoom + ",latLng";
         } else {
@@ -317,19 +317,19 @@ var ThumbnailTool = function (timelapse, options) {
     };
 
     var rootUrl = "";
-    if (isEarthTime) {
+    if (isEarthTime && !isEarthTimeMinimal) {
       var shareViewSettings = {ps: ps, l: layers, bt: bt, et: et, startDwell: startDwell, endDwell: endDwell, forThumbnail : true};
       var shareLink = timelapse.getShareView(startTime, boundsString, shareViewSettings);
       rootUrl = "https://headless.earthtime.org/" + shareLink;
       // TODO: This is used for the story editor to load the fps from the saved share view in the Google Sheet
       rootUrl += "&fps=" + fps;
     } else {
-      rootUrl = timelapse.getSettings().url;
+      rootUrl = settings.thumbnailServerRootTileUrl || timelapse.getSettings().url;
     }
 
     args.root = rootUrl;
 
-    if (isEarthTime) {
+    if (isEarthTime && !isEarthTimeMinimal) {
       args.fromScreenshot = "";
     } else {
       args.boundsLTRB = boundsString;
@@ -342,7 +342,7 @@ var ThumbnailTool = function (timelapse, options) {
     }
 
     if (settings.embedTime) {
-      if (isEarthTime) {
+      if (isEarthTime && !isEarthTimeMinimal) {
         args.minimalUI = "";
       } else {
         args.labelsFromDataset = "";
