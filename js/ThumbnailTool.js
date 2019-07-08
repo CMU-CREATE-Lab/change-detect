@@ -202,7 +202,7 @@ var ThumbnailTool = function (timelapse, options) {
     var bt = shareViewHashParams["bt"];
     var et = shareViewHashParams["et"];
     var ps = (bt == et) ? 0 : shareViewHashParams["ps"];
-    var format = (bt == et) ? "png" : "mp4";
+    var format = (bt == et) ? "jpg" : "mp4";
     format = safeGet(settings["format"], format);
 
     var viewObj = timelapse.unsafeViewToView(shareViewHashParams["v"]);
@@ -291,7 +291,7 @@ var ThumbnailTool = function (timelapse, options) {
     var bt = settings.bt;
     var et = settings.et;
     var ps = safeGet(settings.ps, timelapse.getPlaybackRate() * 100);
-    if (format == "png" || bt == et) {
+    if (format == "png" || format == "jpg" || bt == et) {
       ps = 0;
     }
     var layers = settings.l;
