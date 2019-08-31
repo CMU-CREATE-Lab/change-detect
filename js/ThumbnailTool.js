@@ -66,6 +66,9 @@ var ThumbnailTool = function (timelapse, options) {
   var aspectRatio;
   var isEarthTime = UTIL.isEarthTime();
   var isEarthTimeMinimal = UTIL.isEarthTimeMinimal();
+  var headlessClientHost = (typeof(options.headlessClientHost) === "undefined") ? "https://headless.earthtime.org/" : options.headlessClientHost;
+  var thumbnailServerHost = (typeof(options.thumbnailServerHost) === "undefined") ?
+    ((isEarthTime && !isEarthTimeMinimal) ? "https://thumbnails-earthtime.cmucreatelab.org/thumbnail" : "http://thumbnails.cmucreatelab.org/thumbnail") : options.thumbnailServerHost;
 
   var defaultBoxPadding = (typeof options["defaultBoxPadding"] === "undefined") ? {
     top: 100,
@@ -256,7 +259,7 @@ var ThumbnailTool = function (timelapse, options) {
     }
 
     var config = {
-      host: (isEarthTime && !isEarthTimeMinimal) ? "https://thumbnails-earthtime.cmucreatelab.org/thumbnail" : "http://thumbnails.cmucreatelab.org/thumbnail"
+      host: thumbnailServerHost
     };
 
     var boundsString = "";
@@ -320,7 +323,7 @@ var ThumbnailTool = function (timelapse, options) {
     if (isEarthTime && !isEarthTimeMinimal) {
       var shareViewSettings = {ps: ps, l: layers, bt: bt, et: et, startDwell: startDwell, endDwell: endDwell, forThumbnail : true};
       var shareLink = timelapse.getShareView(startTime, boundsString, shareViewSettings);
-      rootUrl = "https://headless.earthtime.org/" + shareLink;
+      rootUrl = headlessClientHost + shareLink;
       // TODO: This is used for the story editor to load the fps from the saved share view in the Google Sheet
       rootUrl += "&fps=" + fps;
     } else {
