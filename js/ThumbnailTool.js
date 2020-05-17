@@ -294,6 +294,8 @@ var ThumbnailTool = function (timelapse, options) {
     var bt = settings.bt;
     var et = settings.et;
     var ps = safeGet(settings.ps, timelapse.getPlaybackRate() * 100);
+    var isForCurrentView = typeof(settings.isForCurrentView) == "undefined" ? true : settings.isForCurrentView;
+    var forceToBt = ps == 0;
     if (format == "png" || format == "jpg" || bt == et) {
       ps = 0;
     }
@@ -321,7 +323,7 @@ var ThumbnailTool = function (timelapse, options) {
 
     var rootUrl = "";
     if (isEarthTime && !isEarthTimeMinimal) {
-      var shareViewSettings = {ps: ps, l: layers, bt: bt, et: et, startDwell: startDwell, endDwell: endDwell, forThumbnail : true};
+      var shareViewSettings = {ps: ps, l: layers, bt: bt, et: et, startDwell: startDwell, endDwell: endDwell, forThumbnail : true, isForCurrentView: isForCurrentView, forceToBt: forceToBt};
       var shareLink = timelapse.getShareView(startTime, boundsString, shareViewSettings);
       rootUrl = headlessClientHost + shareLink;
       // TODO: This is used for the story editor to load the fps from the saved share view in the Google Sheet
