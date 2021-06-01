@@ -66,6 +66,7 @@ var ThumbnailTool = function (timelapse, options) {
   var aspectRatio;
   var isEarthTime = UTIL.isEarthTime();
   var isEarthTimeMinimal = UTIL.isEarthTimeMinimal();
+  var thumbnailsSupportStartEndTimes = options.thumbnailsSupportStartEndTimes;
   var headlessClientHost = (typeof(options.headlessClientHost) === "undefined") ? "https://headless.earthtime.org/" : options.headlessClientHost;
   var thumbnailServerHost = (typeof(options.thumbnailServerHost) === "undefined") ?
     ((isEarthTime && !isEarthTimeMinimal) ? "https://thumbnails-earthtime.cmucreatelab.org/thumbnail" : "http://thumbnails.cmucreatelab.org/thumbnail") : options.thumbnailServerHost;
@@ -338,8 +339,14 @@ var ThumbnailTool = function (timelapse, options) {
       args.fromScreenshot = "";
     } else {
       args.boundsLTRB = boundsString;
-      args.startFrame = startFrame;
-      args.nframes = nframes;
+      if (thumbnailsSupportStartEndTimes) {
+        // startTime/endTime in format HHMMSS
+        args.startTime = timelapse.shareDateFromFrame(startFrame, false, true).substr(8);
+        args.endTime = timelapse.shareDateFromFrame(startFrame + nframes - 1, false, true).substr(8);
+      } else {
+        args.startFrame = startFrame;
+        args.nframes = nframes;
+      }
     }
 
     if (settings.smoothPlayback) {
