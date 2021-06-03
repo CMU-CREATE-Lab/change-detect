@@ -69,7 +69,7 @@ var ThumbnailTool = function (timelapse, options) {
   var thumbnailsSupportStartEndTimes = options.thumbnailsSupportStartEndTimes;
   var headlessClientHost = (typeof(options.headlessClientHost) === "undefined") ? "https://headless.earthtime.org/" : options.headlessClientHost;
   var thumbnailServerHost = (typeof(options.thumbnailServerHost) === "undefined") ?
-    ((isEarthTime && !isEarthTimeMinimal) ? "https://thumbnails-earthtime.cmucreatelab.org/thumbnail" : "http://thumbnails.cmucreatelab.org/thumbnail") : options.thumbnailServerHost;
+    ((isEarthTime && !isEarthTimeMinimal) ? "https://thumbnails-earthtime.cmucreatelab.org/thumbnail" : "https://thumbnails-v2.createlab.org/thumbnail") : options.thumbnailServerHost;
 
   var defaultBoxPadding = (typeof options["defaultBoxPadding"] === "undefined") ? {
     top: 100,
