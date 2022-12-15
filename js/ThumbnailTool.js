@@ -361,6 +361,10 @@ var ThumbnailTool = function (timelapse, options) {
       }
     }
 
+    if (settings.watermark) {
+      args.watermark = settings.watermark;
+    }
+
     if (settings.baseMapsNoLabels) {
       args.baseMapsNoLabels = "";
     }
