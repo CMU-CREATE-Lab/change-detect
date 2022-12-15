@@ -83,12 +83,16 @@ var ChangeDetectionTool = function(timelapse, thumbnailTool, options) {
   var disable = function() {
     hideFilterBound();
     $chartContainer.hide();
+    $viewerDiv.removeClass('change-detect-enabled');
+    timelapse.onresize();
   };
   this.disable = disable;
 
   var enable = function() {
     showFilterBound();
     $chartContainer.show();
+    $viewerDiv.addClass('change-detect-enabled');
+    timelapse.onresize();
   };
   this.enable = enable;
 

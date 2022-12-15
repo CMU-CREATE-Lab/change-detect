@@ -18,6 +18,10 @@ html, body {
   flex-grow: 1;
 }
 
+.player.change-detect-enabled {
+  height: calc(100% - 210px) !important;
+}
+
 .change-detection-chart {
   position: absolute;
   left: 0px;
