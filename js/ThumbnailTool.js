@@ -246,6 +246,11 @@ var ThumbnailTool = function (timelapse, options) {
   var getURL = function (settings) {
     settings = safeGet(settings, {});
 
+    // If a tileset is a mod4 set, then use the EarthTime screen capture path.
+    if (!isEarthTime) {
+      isEarthTime = timelapse.getMetadata().mod_tile == 4;
+    }
+
     var width = safeGet(settings.width, cropBox.xmax - cropBox.xmin);
     var height = safeGet(settings.height, cropBox.ymax - cropBox.ymin);
     var bound = safeGet(settings.bound, cropBoxToViewBox());
@@ -334,7 +339,6 @@ var ThumbnailTool = function (timelapse, options) {
     }
 
     args.root = rootUrl;
-
     if (isEarthTime && !isEarthTimeMinimal) {
       args.fromScreenshot = "";
     } else {
