@@ -248,7 +248,7 @@ var ThumbnailTool = function (timelapse, options) {
 
     // If a tileset is a mod4 set, then use the EarthTime screen capture path.
     if (!isEarthTime) {
-      isEarthTime = timelapse.getMetadata().mod_tile == 4;
+      isEarthTime = timelapse.getMetadata().tileStride == 4;
     }
 
     var width = safeGet(settings.width, cropBox.xmax - cropBox.xmin);
