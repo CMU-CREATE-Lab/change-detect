@@ -247,7 +247,8 @@ var ThumbnailTool = function (timelapse, options) {
     settings = safeGet(settings, {});
 
     // If a tileset is a mod4 set, then use the EarthTime screen capture path.
-    if (!isEarthTime) {
+    // Otherwise, default to older way of pulling from the video tiles themselves.
+    if (!UTIL.isEarthTime()) {
       isEarthTime = timelapse.getMetadata().tileStride == 4;
     }
 
