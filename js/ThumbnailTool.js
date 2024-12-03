@@ -550,11 +550,14 @@ var ThumbnailTool = function (timelapse, options) {
     ctx.strokeStyle = "rgb(0,255,0)";
     ctx.lineWidth = 2;
     ctx.strokeRect(cropBox.xmin, cropBox.ymin, cropBox.xmax - cropBox.xmin, cropBox.ymax - cropBox.ymin);
-    // Draw the cropping handles
-    ctx.fillStyle = "rgb(0,255,0)";
-    ctx.lineWidth = 0;
-    for (var i = 0; i < cropHandle.length; i++) {
-      ctx.fillRect(cropHandle[i].xmin, cropHandle[i].ymin, cropHandleSize, cropHandleSize);
+    // remove the cropping boxes/handles (for mobile only)
+    if (!org.gigapan.Util.isMobileDevice()) {
+      // Draw the cropping handles
+      ctx.fillStyle = "rgb(0,255,0)";
+      ctx.lineWidth = 0;
+      for (var i = 0; i < cropHandle.length; i++) {
+        ctx.fillRect(cropHandle[i].xmin, cropHandle[i].ymin, cropHandleSize, cropHandleSize);
+      }
     }
   };
 
