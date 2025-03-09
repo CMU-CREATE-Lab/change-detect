@@ -145,6 +145,49 @@ var ThumbnailTool = function (timelapse, options) {
   };
   this.redrawCropBox = redrawCropBox;
 
+  var fitCropBoxToDimensionsByAspectRatio = function(width, height, padding) {
+    if (typeof(padding) == "undefined") {
+      padding = 1;
+    }
+    if (typeof(width) == "undefined") {
+      width = timelapse.getViewportWidth();
+    }
+    if (typeof(height) == "undefined") {
+      height = timelapse.getViewportHeight();
+    }
+
+    // Reduce available space by padding on all sides
+    let availableWidth = width - (2 * padding);
+    let availableHeight = height - (2 * padding);
+
+    let newWidth, newHeight;
+
+    if (aspectRatio > 1) {
+      // e.g. 16:9
+      newWidth = Math.min(availableWidth, availableHeight * aspectRatio);
+      newHeight = newWidth / aspectRatio;
+    } else if (aspectRatio < 1) {
+      // e.g. 9:16
+      newHeight = Math.min(availableHeight, availableWidth / aspectRatio);
+      newWidth = newHeight * aspectRatio;
+    } else {
+      // e.g. 1:1
+      let size = Math.min(availableWidth, availableHeight);
+      newWidth = newHeight = size;
+    }
+
+    let xmin = (width - newWidth) / 2;
+    let xmax = xmin + newWidth;
+    let ymin = (height - newHeight) / 2;
+    let ymax = ymin + newHeight;
+
+    prevBoxWidth = undefined;
+    prevBoxHeight = undefined;
+    setCropBox(xmin, ymin, xmax, ymax);
+    drawCropBox();
+  }
+  this.fitCropBoxToDimensionsByAspectRatio = fitCropBoxToDimensionsByAspectRatio;
+
   var forceAspectRatio = function (w, h) {
     aspectRatio = (parseFloat(w) / parseFloat(h)).toFixed(6);
   };
